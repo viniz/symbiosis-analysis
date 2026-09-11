@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Symbiosis — Cálculos do baralho</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="calculos_especiais.js"></script>
+<style>
+  :root {
+    --bg: #f4f6f8; --card: #ffffff; --ink: #1c2733; --muted: #64748b;
+    --accent: #0e7490; --accent2: #0f766e; --line: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--ink); }
+  header { position: relative; overflow: hidden; background: linear-gradient(135deg, #0f766e 0%, #0e7490 60%, #155e75 100%); color: #fff; padding: 24px 28px 20px; border-bottom: 3px solid #facc15; }
+  header h1 { margin: 0; font-size: 24px; letter-spacing: .01em; }
+  header .h-sub { margin-top: 7px; opacity: .88; font-size: 12.5px; letter-spacing: .03em; display: flex; gap: 10px; flex-wrap: wrap; }
+  header .h-sub .chip { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.25); padding: 2px 10px; border-radius: 999px; font-size: 11.5px; }
+  header .disclaimer { float: right; margin: 0 0 0 14px; max-width: 30%; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); border-radius: 8px; padding: 10px 14px; font-size: 11.5px; line-height: 1.55; }
+  header .disclaimer a { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  nav { display: flex; gap: 6px; padding: 10px 28px 0; flex-wrap: wrap; background: #fff; border-bottom: 1px solid var(--line); }
+  nav button { border: 1px solid var(--line); background: #fff; color: var(--muted); padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 13px; font-weight: 600; }
+  nav button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  main { max-width: 1100px; margin: 0 auto; padding: 22px 28px 60px; }
+  section { display: none; }
+  section.active { display: block; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin: 14px 0; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .card h3 { margin: 0 0 10px; font-size: 14px; color: var(--accent); }
+  .stat { font-size: 26px; font-weight: 700; }
+  .stat small { font-size: 12px; color: var(--muted); font-weight: 500; display: block; margin-top: 2px; }
+  .chart-box { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
+  .chart-box h3 { margin: 0 0 8px; font-size: 14px; color: var(--accent); }
+  .chart-wrap { position: relative; height: 320px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; font-size: 13px; }
+  th, td { border: 1px solid var(--line); padding: 6px 9px; text-align: left; }
+  th { background: #f1f5f9; cursor: pointer; white-space: nowrap; user-select: none; }
+  tr:nth-child(even) td { background: #fafcfe; }
+  .table-box { overflow-x: auto; border-radius: 12px; border: 1px solid var(--line); margin: 14px 0; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .b-fixa { background: #e0f2fe; color: #0369a1; }
+  .b-animal { background: #dcfce7; color: #15803d; }
+  .b-cor { background: #fef3c7; color: #b45309; }
+  details { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+  .controls button { background: var(--accent); color: #fff; border: 0; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  .controls select, .controls input { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; }
+  .note { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+  .highlight { color: var(--accent2); font-weight: 700; }
+  .explain { background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 10px; padding: 12px 16px; margin: 12px 0; }
+  .explain summary { cursor: pointer; font-weight: 700; color: var(--accent); font-size: 13px; }
+  .explain p { margin: 8px 0; font-size: 13px; line-height: 1.55; }
+  .explain code { background: #e0f2fe; padding: 1px 5px; border-radius: 5px; font-size: 12px; }
+  .explain ul { margin: 6px 0 6px 18px; padding: 0; font-size: 13px; line-height: 1.55; }
+  .thumb { position: relative; display: inline-block; }
+  .thumb img.mini { width: 56px; height: auto; border-radius: 6px; display: block; cursor: zoom-in; border: 1px solid var(--line); }
+  .thumb img.big { display: none; position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); width: 240px; height: auto; z-index: 60; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.35); pointer-events: none; }
+  .thumb:hover img.big { display: block; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; margin: 14px 0; }
+  .gcard { cursor: zoom-in; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; transition: transform .12s ease, box-shadow .12s ease; }
+  .gcard:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,23,42,.12); }
+  .gcard img { width: 100%; height: auto; border-radius: 8px; }
+  .gcard .cap { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+  .gcard .cap b { color: var(--ink); }
+  #lightbox { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.82); z-index: 100; align-items: center; justify-content: center; cursor: zoom-out; }
+  #lightbox.on { display: flex; }
+  #lightbox img { max-height: 86vh; max-width: 90vw; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+  #lightbox .cap { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+  .pond-wrap { max-width: 760px; margin: 0 auto; }
+  .column-hint { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 0 auto 4px; font-size: 11px; color: var(--muted); text-align: center; font-weight: 700; letter-spacing: .03em; }
+  .column-hint .c-center { color: var(--accent); }
+  .pond { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .pond-cell { background: #fff; border: 2px solid var(--line); border-radius: 10px; padding: 6px; text-align: center; position: relative; }
+  .pond-cell img { width: 100%; height: auto; border-radius: 6px; display: block; }
+  .pond-cell .tag { font-size: 11px; font-weight: 700; margin-top: 5px; line-height: 1.35; }
+  .pond-cell.central { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(14,116,144,.25); }
+  .pond-cell.central .tag { color: var(--accent2); }
+  .pond-cell.side { border-style: dashed; border-color: var(--muted); }
+  .pond-cell.side .tag { color: var(--muted); font-weight: 600; }
+  .pond-cell.side .lock { position: absolute; top: 4px; left: 4px; background: rgba(100,116,139,.9); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px; }
+  .pond-compare { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; margin: 10px 0; align-items: stretch; }
+  .pond-col { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; box-shadow: 0 1px 4px rgba(15,23,42,.06); }
+  .pond-vs { align-self: center; background: var(--accent); color: #fff; font-weight: 800; font-size: 12px; border-radius: 999px; padding: 8px 12px; box-shadow: 0 2px 6px rgba(14,116,144,.35); }
+  .pond-col label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+  .pond-col select { padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; max-width: 100%; }
+  .mesa-layout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 960px; margin: 10px auto; align-items: start; justify-items: center; }
+  .mesa-player { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px; width: 100%; max-width: 290px; }
+  .mesa-player .mp-head { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .mesa-player .mp-neighbors { font-size: 10px; color: var(--muted); font-weight: 600; }
+  .mesa .pond { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .mesa .pond-cell { padding: 3px; }
+  .mesa .pond-cell img { max-width: 64px; margin: 0 auto; }
+  .mesa .pond-cell .tag { font-size: 9px; margin-top: 2px; }
+  .mesa-river { background: #f8fafc; border: 1px dashed var(--line); border-radius: 12px; padding: 8px; width: 100%; max-width: 290px; }
+  .mesa-river .mr-head { font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 4px; text-align: center; }
+  .mesa-river .pond { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .ga-layout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 1020px; margin: 10px auto; align-items: start; justify-items: center; }
+  .ga-col { display: flex; flex-direction: column; align-items: center; margin: 0 auto; }
+  .ga-mid { display: flex; align-items: center; justify-content: space-between; gap: 18px; width: 100%; max-width: 1060px; margin: -260px 0; pointer-events: none; }
+  .ga-mid > * { pointer-events: auto; }
+  .ga-river-line { background: #f8fafc; border: 1px dashed var(--line); border-radius: 10px; padding: 4px 8px; }
+  .ga-river-line .ga-rl-head { font-size: 10px; color: var(--muted); font-weight: 700; text-align: center; margin-bottom: 2px; }
+  .ga-rl-cards { display: grid; grid-template-columns: repeat(4, auto); gap: 4px; }
+  .ga-river-line .ga-slot { min-height: 0; padding: 2px; }
+  .ga-river-line .ga-card img { max-width: 100px; }
+  .ga-pond { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+  .ga-head { font-size: 12px; font-weight: 700; margin-bottom: 1px; }
+  .ga-sub { font-size: 10px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .ga-row { margin-bottom: 6px; }
+  .ga-cells { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .ga-slot { background: #f8fafc; border: 1.5px dashed var(--line); border-radius: 8px; padding: 3px; text-align: center; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .ga-slot.dragover { border-color: var(--accent); background: #ecfeff; }
+  .ga-card { cursor: grab; width: 100%; }
+  .ga-card img { width: 100%; max-width: 100px; border-radius: 6px; display: block; margin: 0 auto; -webkit-user-drag: none; user-select: none; }
+  .ga-card .tag { font-size: 9px; font-weight: 700; margin-top: 2px; }
+  .ga-card.dragging { opacity: .4; }
+  .ga-river { background: #f8fafc; border: 1px dashed var(--line); border-radius: 12px; padding: 8px 10px; }
+  .ga-river .ga-rhead { font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 4px; text-align: center; }
+  .ga-hpond { gap: 6px; margin-top: 4px; }
+  .calc1-display { display: flex; gap: 14px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 10px 0; }
+  .calc-box { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .calc-h { font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 6px; text-align: center; }
+  .calc1-display .pond, .calc1-display .nei-cells { gap: 4px; }
+  .nei-cells { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .calc1-display .ga-slot, #calc2-display .ga-slot { min-height: 0; padding: 2px; }
+  .calc1-display .ga-card img, #calc2-display .ga-card img { max-width: 64px; }
+  .calc1-display .ga-card .tag, #calc2-display .ga-card .tag { font-size: 8px; }
+  #calc2-display .ga-mid { margin: -170px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="disclaimer">Ferramenta de análise <b>não oficial</b> de Symbiose (Subverti / Hachette Boardgames) <a href="https://www.hachetteboardgames.com/products/symbiosis" target="_blank" rel="noopener">Site oficial ↗</a>. As imagens das cartas pertencem aos seus detentores.</br> Os <b>cálculos foram realizados por IA</b>, com o auxílio de scripts em Python. Em caso de dúvidas, correções ou uso, entre em contato. </div>
+  <h1>🐌 Symbiosis — Cálculos do baralho</h1>
+  <div class="h-sub">
+    <span class="chip">36 cartas</span>
+    <span class="chip">4 animais · 4 cores</span>
+    <span class="chip">pontuação por posição, vizinhos e cenários extremos</span>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button data-tab="baralho" class="active">1 · Baralho</button>
+  <button data-tab="jogo">2 · Área de jogo</button>
+  <button data-tab="ev">3 · EV por carta</button>
+  <button data-tab="calc">4 · Cálculos especiais</button>
+  <button data-tab="max">5 · Máximo teórico</button>
+  <button data-tab="sim">6 · Simulação</button>
+  <button data-tab="fase2">7 · Fase 2 · Vizinhos</button>
+  <button data-tab="dist">8 · Distribuições (mão de 8)</button>
+</nav>
+
+<main>
+
+  <!-- ================= 1. BARALHO ================= -->
+  <section id="baralho" class="active">
+    <details class="explain" open>
+      <summary>Todas as 36 cartas (clique em uma carta para ampliar)</summary>
+      <div class="gallery" id="all-cards"></div>
+    </details>
+    <div class="grid">
+      <div class="card"><div class="stat" id="stat-total"></div><div class="stat small"></div></div>
+      <div class="card"><h3>Tipos</h3><div id="stat-tipos"></div></div>
+      <div class="card"><h3>Multiplicadores por alvo</h3><div id="stat-alvos"></div></div>
+    </div>
+    <div class="chart-box"><h3>Cartas por animal</h3><div class="chart-wrap"><canvas id="chart-animals"></canvas></div></div>
+    <div class="chart-box"><h3>Cartas por cor</h3><div class="chart-wrap"><canvas id="chart-colors"></canvas></div></div>
+    <div class="table-box">
+      <table id="deck-table"></table>
+    </div>
+    <details class="explain">
+      <summary>Explicação desta aba</summary>
+      <p>O baralho tem <b>36 cartas</b>, e cada carta carrega 3 atributos: um <b>animal</b> (Caracol, Libélula, Peixe ou Sapo), uma <b>cor</b> (Rosa, Verde, Laranja ou Azul) e um <b>tipo de pontuação</b> (Fixa, Animal ou Cor).</p>
+      <ul>
+        <li><b>Fixa (10 cartas)</b>: valem o número impresso em qualquer posição — a pontuação é garantida.</li>
+        <li><b>Animal / Cor (13 + 13 cartas)</b>: valem <code>N × (nº de cartas do tipo citado no Pond)</code> — o valor depende das contagens presentes na mesa.</li>
+      </ul>
+      <p>As contagens por animal (<code>Caracol 8 · Libélula 12 · Peixe 10 · Sapo 6</code>) e por cor (<code>Rosa 12 · Verde 10 · Laranja 8 · Azul 6</code>) são <b>desbalanceadas de propósito</b>. Isso define o "mercado" de contagens do jogo: há muito mais Libélulas e Rosas do que Sapos e Azuis.</p>
+      <p>A tabela <b>"Multiplicadores por alvo"</b> mostra quantas cartas multiplicam por cada tipo. Ela importa porque cartas que multiplicam por tipos <b>raros</b> (Sapo: 2 cartas, Azul: 2 cartas) tendem a pontuar menos e de forma mais instável do que as que multiplicam por tipos comuns (Libélula, Rosa: 4 cartas cada).</p>
+    </details>
+  </section>
+
+  <!-- ================= 2. DISTRIBUIÇÕES ================= -->
+  <section id="dist">
+    <div class="chart-box"><h3>Distribuição da contagem de cada categoria numa mão de 8 (P(k), exata)</h3>
+      <div class="chart-wrap"><canvas id="chart-dist"></canvas></div>
+    </div>
+    <div class="table-box">
+      <table id="dist-summary"></table>
+    </div>
+    <div id="dist-details"></div>
+    <details class="explain">
+      <summary>O que significam as tabelas de k=0 a k=8?</summary>
+      <p>Cada tabela descreve uma categoria (um animal ou uma cor) dentro de uma mão de 8 cartas. A coluna <b>k</b> é a <b>quantidade de cartas daquela categoria</b> que aparecem na mão:</p>
+      <ul>
+        <li><b>k=0</b> → a mão não tem nenhuma carta daquela categoria;</li>
+        <li><b>k=1</b> → tem exatamente 1;</li>
+        <li>… e assim por diante até <b>k=8</b>, quando as 8 cartas da mão são todas da mesma categoria (só possível para categorias com 8 ou mais cartas no baralho — ex.: Libélula e Rosa).</li>
+      </ul>
+      <p><b>P(k)</b> é a probabilidade exata de isso acontecer (hipergeométrica), e <b>P acum.</b> é a soma até aquele k. As probabilidades da coluna sempre somam 100%, pois em toda mão cada categoria aparece com exatamente um valor de k.</p>
+      <p>Exemplo: <code>k=0</code> de Sapo vale 19.34% → em ~1 em cada 5 mãos não há nenhum Sapo, o que derruba cartas <code>× Sapos</code>. Já <code>k=0</code> de Libélula é só 2.43%.</p>
+    </details>
+    <details class="explain">
+      <summary>Explicação desta aba</summary>
+      <p>Esta aba responde: <i>"numa mão aleatória de 8 cartas (de 36), quantas cartas de cada animal e de cada cor eu espero ter?"</i> Isso é modelado pela <b>distribuição hipergeométrica</b>, que descreve um sorteio <b>sem reposição</b>:</p>
+      <p><code>P(k) = C(T, k) · C(36 − T, 8 − k) / C(36, 8)</code></p>
+      <ul>
+        <li><code>T</code> = total de cartas daquela categoria no baralho (ex.: Libélula = 12);</li>
+        <li><code>k</code> = quantidade que aparece na mão (0 a 8);</li>
+        <li><code>C(n, r)</code> = combinações ("de n, escolher r").</li>
+      </ul>
+      <p>Leitura das colunas: <b>Média</b> é a quantidade típica esperada; <b>Moda</b>, o valor mais provável; <b>Mediana</b>, o valor central; <b>P2.5/P97.5</b>, a faixa que cobre 95% dos casos.</p>
+      <p>O desbalanceamento do baralho aparece aqui: <b>Libélula</b> tem média 2.67 e <b>Rosa</b> 2.67 na mão, enquanto <b>Sapo</b> e <b>Azul</b> têm média 1.33. Consequência direta para o jogo: cartas <code>× Libélulas</code> e <code>× Rosas</code> encontram alvos com mais frequência; cartas <code>× Sapos</code> e <code>× Azuis</code> dependem de sorte (e de quanto você mesmo acumula no seu Pond).</p>
+    </details>
+  </section>
+
+  <!-- ================= 3. EV POR CARTA ================= -->
+  <section id="ev">
+    <div class="grid" id="ev-cards"></div>
+    <div class="controls">
+      <button onclick="renderEv('ev')">Ordenar por EV ↓</button>
+      <button onclick="renderEv('id')">Ordenar por #</button>
+      <button onclick="renderEv('range')">Ordenar por amplitude (Max−Min) ↓</button>
+      <span class="note">EV = valor esperado da carta quando em posição <b>central</b>, contando o próprio Pond (8 cartas).</span>
+    </div>
+    <div class="table-box">
+      <table id="ev-table"></table>
+    </div>
+    <details class="explain">
+      <summary>Explicação desta aba</summary>
+      <p>O <b>EV (valor esperado)</b> é a pontuação média que uma carta alcança quando está numa das <b>4 posições centrais</b> do Pond (as que pontuam contra o seu próprio Pond de 8 cartas), no modelo Fase 1.</p>
+      <ul>
+        <li><b>Cartas Fixas</b>: EV = valor impresso (é o mesmo em qualquer posição).</li>
+        <li><b>Multiplicadoras</b> (<code>N × alvo</code>): a contagem do alvo no Pond é composta por:
+          <ul>
+            <li><code>self</code> = 1 se a própria carta é do tipo referenciado (senão 0);</li>
+            <li><code>X</code> = nº de cartas do alvo entre as <b>outras 7</b> cartas do Pond, sorteadas de 35 restantes → <code>X ~ Hipergeom(35, T − self, 7)</code>.</li>
+          </ul>
+        </li>
+      </ul>
+      <p>Fórmulas usadas:</p>
+      <ul>
+        <li><b>EV</b> = <code>N × (self + 7·(T − self)/35)</code>;</li>
+        <li><b>Min / Max</b> = cenário ótimo/mínimo: <code>N × self</code> (sem alvo extra) até <code>N × (self + min(7, T − self))</code>;</li>
+        <li><b>P5 / P95</b> = percentis do score, calculados da distribuição de X: são os valores que cobrem 90% dos casos típicos;</li>
+        <li><b>DP</b> = desvio padrão = <code>N × √Var(X)</code>, com <code>Var(X) = Σ k²·P(X=k) − E[X]²</code> — mede o quanto o score oscila.</li>
+      </ul>
+      <p>Observação dos resultados: nenhuma multiplicadora supera em média as <b>Fixa 8</b> (EV 8.0). Cartas como <code>5 × Sapos</code> têm Max alto (30) mas também Min 0, P5 0 e DP alto: EV engana — precisam de muita sorte no sorteio dos alvos.</p>
+      <p>O valor <b>ΣEV/9 = 23.42</b> (exibido nos cards) é o score médio teórico da mão: cada carta tem probabilidade <code>8/36</code> de estar na mão e <code>4/8</code> de estar no centro → <code>8/36 × 4/8 = 1/9</code> por carta.</p>
+    </details>
+  </section>
+
+  <!-- ================= 4. SIMULAÇÃO ================= -->
+  <section id="sim">
+    <div class="controls">
+      <label>Nº de mãos:
+        <select id="sim-trials">
+          <option value="10000">10.000</option>
+          <option value="50000" selected>50.000</option>
+          <option value="200000">200.000</option>
+          <option value="500000">500.000</option>
+        </select>
+      </label>
+      <button onclick="runSim()">Recalcular (seed fixa 42)</button>
+      <span class="note">PRNG mulberry32 com semente fixa → resultados reproduzíveis. 4 centrais aleatórias entre as 8 cartas da mão.</span>
+    </div>
+    <div class="grid" id="sim-cards"></div>
+    <div class="chart-box"><h3>Histograma do score da mão (4 centrais)</h3>
+      <div class="chart-wrap"><canvas id="chart-hist"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Melhores mãos da simulação — Pond 4×2 (colunas laterais desabilitadas)</h3>
+      <div class="controls">
+        <label>Histórico:
+          <select id="best-hist" onchange="rebuildTop(parseInt(this.value, 10))">
+            <option value="10" selected>10 mãos</option>
+            <option value="20">20 mãos</option>
+            <option value="50">50 mãos</option>
+          </select>
+        </label>
+        <button id="btn-first" onclick="gotoBestPage(0)">⏮ Primeira</button>
+        <button id="btn-prev" onclick="gotoBestPage(bestState.page - 1)">◀ Anterior</button>
+        <span id="best-count" style="font-weight:700;min-width:150px;text-align:center"></span>
+        <button id="btn-next" onclick="gotoBestPage(bestState.page + 1)">Próxima ▶</button>
+        <button id="btn-last" onclick="gotoBestPage(999999)">Última ⏭</button>
+      </div>
+      <div class="pond-wrap">
+        <div class="column-hint"><span>LATERAL</span><span class="c-center">CENTRO</span><span class="c-center">CENTRO</span><span>LATERAL</span></div>
+        <div class="pond" id="best-hand"></div>
+        <div class="note" id="best-hand-note"></div>
+      </div>
+    </div>
+    <div class="table-box">
+      <table id="sim-count-table"></table>
+    </div>
+    <details class="explain">
+      <summary>O que significa a tabela de k=0 a k=8 nesta aba?</summary>
+      <p>É a versão <b>observada na simulação</b> da mesma análise da aba 2. Cada linha é uma categoria (animal ou cor) e cada coluna <b>k</b> é a quantidade de cartas daquela categoria numa mão:</p>
+      <ul>
+        <li>o valor na célula = <b>% das mãos simuladas</b> em que a categoria apareceu exatamente <b>k</b> vezes;</li>
+        <li>ex.: <code>k=0</code> de Sapo = % de mãos sem nenhum Sapo; <code>k=8</code> = % de mãos onde todas as 8 cartas são daquela categoria (só ocorre para categorias com ≥8 cartas no baralho).</li>
+      </ul>
+      <p>Cada linha soma ~100%, porque em toda mão cada categoria aparece com exatamente um valor de k (0 a 8).</p>
+      <p>A coluna <b>Diff. máx.</b> mostra a maior diferença (em pontos percentuais) entre o valor <b>empírico</b> (observado) e o <b>exato</b> (hipergeométrico da aba 2) para aquela categoria. Valores pequenos (≈ abaixo de 1 pp) confirmam que a simulação está batendo com as fórmulas exatas.</p>
+    </details>
+    <details class="explain">
+      <summary>Explicação desta aba</summary>
+      <p>A <b>simulação de Monte Carlo</b> valida as fórmulas exatas na prática, sorteando milhares de mãos aleatórias e contando o que acontece. O procedimento em cada mão:</p>
+      <ul>
+        <li>embaralha o baralho de 36 e tira <b>8 cartas</b> (a mão / Pond);</li>
+        <li>as <b>4 primeiras cartas</b> são tratadas como as posições <b>centrais</b> (subconjunto aleatório — baseline sem estratégia);</li>
+        <li>cada carta central pontua contra o <b>Pond completo de 8</b> (Fixas valem o número; multiplicadoras usam a contagem real do alvo na mão);</li>
+        <li>as 4 cartas laterais valem <b>0</b> (modelo Fase 1 — ainda não há vizinhos).</li>
+      </ul>
+      <p>O PRNG usado é <b>mulberry32 com semente fixa 42</b>: mesmo número de mãos sempre gera os mesmos resultados (reproduzível).</p>
+      <p><b>O que os resultados mostram</b>:</p>
+      <ul>
+        <li><b>Média simulada</b> deve se aproximar de <code>ΣEV/9</code> (o valor exato) — é a principal validação das fórmulas da aba EV;</li>
+        <li><b>P5 / P50 / P95</b> descrevem a faixa de scores típicos de uma mão;</li>
+        <li>o <b>histograma</b> mostra a forma da distribuição (concentrada ou espalhada);</li>
+        <li>a tabela <b>empírico vs exato</b> compara as contagens observadas por categoria com a hipergeométrica — a "Diff. máx." (em pontos percentuais) deve ser pequena, confirmando as contas.</li>
+      </ul>
+    </details>
+    <details class="explain">
+      <summary>O que significa o grid Pond 4×2?</summary>
+      <p>É a disposição real do jogo: <b>8 cartas em 2 linhas × 4 colunas</b>. As <b>2 colunas centrais</b> (4 cartas) pontuam contra o seu próprio Pond completo; as <b>colunas laterais</b> (1ª e 4ª) pontuariam contra os vizinhos — e por isso, na Fase 1 (sem vizinhos), estão <b>desabilitadas</b> (borda tracejada + selo "0 pts", pontuam 0). As cores das cartas permanecem visíveis.</p>
+      <p>O bloco mostra as <b>melhores mãos da simulação</b> (as de maior score entre as N sorteadas), em um <b>histórico paginado</b> com seletor de tamanho (10/20/50). Empates no corte do ranking são mantidos. Cada carta central exibe quantos pontos rendeu; a soma é o total do cenário.</p>
+    </details>
+  </section>
+
+  <!-- ================= 5. MÁXIMO TEÓRICO ================= -->
+  <section id="max">
+    <div class="grid">
+      <div class="card"><div class="stat">30.260.340<small>Combinações possíveis de mão — C(36,8)</small></div></div>
+      <div class="card"><div class="stat">58.905<small>Cenários avaliados (método exato) — C(36,4) = top-4 por peso aditivo</small></div></div>
+      <div class="card"><div class="stat" id="max-total">—<small>Pontuação máxima teórica (Fase 1)</small></div></div>
+    </div>
+
+    <div class="chart-box">
+      <h3>Comparador de lago — dois arranjos lado a lado</h3>
+      <div class="pond-compare">
+        <div class="pond-col">
+          <label>Lago A:
+            <select id="pond-a-select" onchange="renderCompare()"></select>
+          </label>
+          <div class="column-hint"><span>LATERAL</span><span class="c-center">CENTRO</span><span class="c-center">CENTRO</span><span>LATERAL</span></div>
+          <div class="pond" id="pond-a"></div>
+        </div>
+        <div class="pond-vs">VS</div>
+        <div class="pond-col">
+          <label>Lago B:
+            <select id="pond-b-select" onchange="renderCompare()"></select>
+          </label>
+          <div class="column-hint"><span>LATERAL</span><span class="c-center">CENTRO</span><span class="c-center">CENTRO</span><span>LATERAL</span></div>
+          <div class="pond" id="pond-b"></div>
+        </div>
+      </div>
+      <div class="note" id="max-compare-note"></div>
+    </div>
+
+    <h4 style="margin:12px 0 6px;color:var(--accent);font-size:13px">Top 10 arranjos — comparação de variação (empates no corte mantidos)</h4>
+    <div class="table-box">
+      <table id="max-top10"></table>
+    </div>
+    <div class="note" id="max-variation"></div>
+
+    <details class="explain">
+      <summary>Como o máximo teórico é calculado?</summary>
+      <p>Existem <b>C(36,8) = 30.260.340</b> mãos possíveis. O método inteligente reduz essa busca exatamente:</p>
+      <ul>
+        <li>enumera apenas as escolhas das <b>4 cartas centrais</b>: <b>C(36,4) = 58.905</b> cenários;</li>
+        <li>para um conjunto central fixo, a pontuação total é <code>parcela(C) + Σ_{x∈apoio} w(x)</code>, com o <b>peso aditivo</b> <code>w(x) = Σ dos N_c dos centrais que a carta x casa</code>;</li>
+        <li>como não há interação entre as cartas de apoio, o apoio ótimo são as <b>4 cartas restantes de maior w(x)</b> — sem enumerar C(32,4) combinações de apoio.</li>
+      </ul>
+      <p>Resultado: <b>73 pts</b> (centrais {13, 19, 29, 30}; apoio {16, 18, 6, 27}). A tabela mostra o <b>top 10</b> de arranjos (com empates no corte) para comparar a variação de cartas entre os melhores cenários. Esquerda × direita do apoio fica para uma próxima etapa (Fase 1: laterais pontuam 0).</p>
+    </details>
+    <details class="explain">
+      <summary>Como usar o comparador de lago?</summary>
+      <p>O <b>comparador</b> mostra dois lago lado a lado (4×2), cada um com um seletor apontando para um item da tabela <b>Top 10</b>. Assim você vê, com as imagens, as diferenças de cartas entre dois arranjos de alta pontuação (ex.: Lago A = 1º, Lago B = 2º).</p>
+      <p>Cada lago segue o modelo Fase 1: só as 4 centrais pontuam (badge com a contribuição); as laterais ficam tracejadas com selo "0 pts".</p>
+    </details>
+    <details class="explain">
+      <summary>Explicação desta aba</summary>
+      <p>Esta aba calcula o <b>máximo teórico</b> de pontos que uma mão pode alcançar na Fase 1 (4 centrais pontuando contra o Pond de 8, laterais = 0), usando o método inteligente sobre os <b>58.905</b> conjuntos centrais possíveis (equivalente a varrer as <b>30.260.340</b> mãos).</p>
+      <p>Além do melhor arranjo, mostra o <b>top 10</b> (com empates no corte) e o <b>comparador</b> para inspecionar dois arranjos lado a lado com as imagens das cartas.</p>
+    </details>
+  </section>
+
+  <!-- ================= 6. FASE 2 (VIZINHOS) ================= -->
+  <section id="fase2">
+    <div class="controls">
+      <label>Jogadores:
+        <select id="f2-players">
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4" selected>4</option>
+        </select>
+      </label>
+      <label>Partidas:
+        <select id="f2-trials">
+          <option value="10000">10.000</option>
+          <option value="50000" selected>50.000</option>
+          <option value="200000">200.000</option>
+        </select>
+      </label>
+      <button onclick="runFase2()">Rodar simulação (seed fixa 42)</button>
+      <span class="note">Placar = 4 centrais × próprio Pond + 2 esquerdas × vizinho esquerdo + 2 direitas × vizinho direito. Rio fora do placar.</span>
+    </div>
+    <div class="grid" id="f2-cards"></div>
+    <div class="chart-box"><h3>Histograma do placar individual (otimizado)</h3>
+      <div class="chart-wrap"><canvas id="chart-f2"></canvas></div>
+    </div>
+    <div class="chart-box"><h3>Contribuição média por coluna (baseline vs otimizado)</h3>
+      <div class="chart-wrap"><canvas id="chart-f2cols"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>EV por carta por posição (Fase 2)</h3>
+      <div class="controls" style="margin-top:0">
+        <button onclick="renderF2Ev('id')">Ordenar por #</button>
+        <button onclick="renderF2Ev('opt')">Ordenar por EV ótimo ↓</button>
+        <button onclick="renderF2Ev('delta')">Ordenar por ganho ótimo vs centro ↓</button>
+        <span class="note">EV centro/lateral = fórmulas exatas; EV ótimo = média empírica da posição escolhida pelo otimizador (MC).</span>
+      </div>
+      <div class="table-box"><table id="f2-ev-table"></table></div>
+    </div>
+    <div class="chart-box">
+      <h3>Mesa exemplo — partida sorteada (arranjo otimizado)</h3>
+      <div class="controls" style="margin-top:0">
+        <button onclick="renderMesa()">Sortear nova partida</button>
+        <span class="note">Cada carta mostra quantos pontos rende na posição: centrais vs próprio Pond; laterais vs o vizinho correspondente.</span>
+      </div>
+      <div id="mesa"></div>
+    </div>
+    <details class="explain">
+      <summary>Como funciona a pontuação com vizinhos?</summary>
+      <p>Em cada Pond 4×2, as <b>2 colunas centrais</b> (4 cartas) pontuam contra o <b>seu próprio Pond</b>; a <b>coluna esquerda</b> (2 cartas) pontua contra o Pond do <b>vizinho da esquerda</b>; a <b>coluna direita</b> (2 cartas) contra o <b>vizinho da direita</b>. Cartas Fixas valem o número em qualquer posição.</p>
+      <p>O <b>Rio</b> (4 cartas) fica fora dos Ponds no modo normal e não pontua. Em 2–3 jogadores, parte do baralho fica sem uso.</p>
+    </details>
+    <details class="explain">
+      <summary>Posicionamento ótimo (DP)</summary>
+      <p>Como o conteúdo do vizinho é fixo (8 cartas já sorteadas), o placar de um jogador depende apenas de qual posição cada uma das suas 8 cartas ocupa. O otimizador usa <b>programação dinâmica</b> sobre as capacidades (2 esquerda, 4 centro, 2 direita) — equivalente a varrer as <b>420</b> disposições (C(8,2)×C(6,2)), instantâneo e exato.</p>
+      <p>Como a disposição do vizinho não altera o conteúdo do seu Pond, as otimizações de todos os jogadores são <b>independentes</b> e simultâneas (sem iteração).</p>
+    </details>
+    <details class="explain">
+      <summary>EV por posição (fórmulas)</summary>
+      <p><b>Centro</b>: mesmo cálculo da Fase 1 (contra o próprio Pond, contando a própria carta).</p>
+      <p><b>Lateral</b>: a carta não está no Pond do vizinho; com a sua mão fixa (contendo a carta), o vizinho sorteia 8 das 28 restantes. <code>E[vizinho] = 8 × (T − E[mãos próprias com alvo]) / 28</code>, com <code>E[mão] = self + 7×(T−self)/35</code>. EV = <code>N × E[vizinho]</code>.</p>
+      <p>Coluna <b>EV ótimo</b>: média (MC) do valor da carta na posição que o otimizador escolheu — mostra quanto o posicionamento inteligente agrega.</p>
+    </details>
+    <details class="explain">
+      <summary>Explicação desta aba</summary>
+      <p>Fase 2: a partida completa no <b>modo normal (2–4 jogadores)</b>, em que as colunas laterais também pontuam (contra os vizinhos). A simulação de Monte Carlo sorteia partidas inteiras e compara dois cenários:</p>
+      <ul>
+        <li><b>Baseline</b>: cada jogador distribui as 8 cartas em colunas aleatórias;</li>
+        <li><b>Otimizado</b>: cada jogador escolhe a melhor disposição (esq/centro/dir) dado os vizinhos.</li>
+      </ul>
+      <p>Resultados: placares (média/DP/quantis), contribuição por coluna, taxa de vitória, EV por carta/posição e uma mesa exemplo sorteada.</p>
+    </details>
+  </section>
+
+  <!-- ================= 7. ÁREA DE JOGO ================= -->
+  <section id="jogo">
+    <div class="controls">
+      <label>Jogadores:
+        <select id="ga-players" onchange="gaDeal()">
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4" selected>4</option>
+        </select>
+      </label>
+      <button onclick="gaDeal()">Novo sorteio</button>
+      <button onclick="gaOptimize()">Posicionamento ótimo</button>
+      <label>Carregar resultado:
+        <select id="ga-load" onchange="loadCalcResult()"><option value="">— Nenhum —</option></select>
+      </label>
+      <label style="font-weight:600"><input type="checkbox" id="ga-lock" onchange="gaSetLock()"> Bloquear edição</label>
+      <span class="note">Arraste uma carta e solte em outro lugar (lagos ou Rio) para trocar de posição. A pontuação atualiza na hora.</span>
+    </div>
+    <div id="jogo-table"></div>
+    <details class="explain">
+      <summary>Como usar a área de jogo?</summary>
+      <p>Na mesa de 4 jogadores: <b>J1 e J3 são horizontais</b> (2×4: esquerda → direita), e <b>J2 e J4 são verticais</b> (4×2: cima → baixo). A relação de pontuação por lado fica no cabeçalho de cada lago (ex.: <code>← J2 pts · centro pts · J4 pts →</code>):</p>
+      <ul>
+        <li><b>J1</b>: esquerda pontua vs <b>J2</b>, direita vs <b>J4</b>;</li>
+        <li><b>J2</b>: cima vs <b>J1</b>, baixo vs <b>J3</b>;</li>
+        <li><b>J3</b>: esquerda vs <b>J2</b>, direita vs <b>J4</b>;</li>
+        <li><b>J4</b>: cima vs <b>J2</b>, baixo vs <b>J3</b>.</li>
+      </ul>
+      <p><b>Arraste</b> qualquer carta (lago ou Rio) e solte sobre outra para trocar de lugar; os pontos atualizam na hora. Use <b>"Carregar resultado"</b> para trazer uma configuração do <b>Cálculo 1</b> (mão do J1 + vizinhos; o restante — J3 e Rio — é preenchido aleatoriamente) ou do <b>Cálculo 2</b> (mesa completa) e continuar editando. O checkbox <b>"Bloquear edição"</b> desliga o arrastar (somente visualização).</p>
+    </details>
+    <details class="explain">
+      <summary>Pontuação ao vivo</summary>
+      <p>Centrais pontuam contra o <b>próprio Pond</b>; cartas da 1ª linha (esquerda) contra o Pond do <b>vizinho esquerdo</b>; as da última linha (direita) contra o <b>vizinho direito</b>. Fixas valem o número em qualquer posição. O Rio não pontua.</p>
+    </details>
+    <details class="explain">
+      <summary>Explicação desta aba</summary>
+      <p>Esta é a <b>área de jogo</b> interativa: J1 em cima e J3 embaixo (centrais); <b>J2/J4 laterais</b> começando no meio do J1 e terminando no meio do J3; <b>Rio em uma linha</b> ao centro. J1/J3 horizontais (esquerda→J2, direita→J4) e J2/J4 verticais (J2: cima→J1/baixo→J3; J4: cima→J2/baixo→J3).</p>
+      <p>Use <b>arrastar e soltar</b> para trocar cartas entre lagos e Rio e explore como cada movimento altera os placares em tempo real.</p>
+    </details>
+  </section>
+
+  <!-- ================= 8. CÁLCULOS ESPECIAIS ================= -->
+  <section id="calc">
+    <div id="calc-warn" style="display:none" class="explain">
+      <summary>Resultados não disponíveis</summary>
+      <p>O arquivo <code>calculos_especiais.js</code> não foi carregado. Rode <code>python calculo_symbiosis.py</code> para gerá-lo (busca heurística, top 100).</p>
+    </div>
+    <div class="grid" id="calc-cards"></div>
+    <div class="chart-box">
+      <h3>Cálculo 1 — máxima pontuação de J1 (direita + centro + esquerda, vizinhos favoráveis)</h3>
+      <div class="controls" style="margin-top:0">
+        <label>Top 100:
+          <select id="calc1-sel" onchange="renderCalc1()"></select>
+        </label>
+        <span class="note">Convenção da mesa: J1 esquerda → J2, direita → J4. <b>Top 100 = mãos distintas</b> (ordem dentro das colunas ignorada, forma <code>[dd, cccc, ee]</code>); vizinhos = 8+8 de maior peso aditivo (exato para a mão de J1).</span>
+      </div>
+      <div id="calc1-display"></div>
+    </div>
+    <div class="chart-box">
+      <h3>Cálculo 2 — máxima pontuação total (J1+J2+J3+J4, convenção da mesa)</h3>
+      <div class="controls" style="margin-top:0">
+        <label>Top 100:
+          <select id="calc2-sel" onchange="renderCalc2()"></select>
+        </label>
+        <span class="note">Configurações de mesa <b>distintas</b> (ordem dentro das colunas ignorada).</span>
+      </div>
+      <div id="calc2-display"></div>
+    </div>
+    <details class="explain">
+      <summary>O que são estes cálculos?</summary>
+      <p><b>Cálculo 1</b>: a maior pontuação que o <b>J1</b> pode alcançar (soma das cartas da direita, centro e esquerda do seu Pond), supondo que as cartas dos vizinhos da esquerda e da direita são <b>sempre favoráveis ao J1</b> (escolhidas para maximizá-lo). Espaço: <code>C(36,8)·C(28,8)·C(20,8)</code> ≈ <b>1,185×10¹⁹</b>.</p>
+      <p><b>Cálculo 2</b>: dentre todas as mesas possíveis, a que gera a <b>maior soma J1+J2+J3+J4</b> (independente dos placares individuais). Espaço: <code>C(36,8)·C(28,8)·C(20,8)·C(12,8)</code> ≈ <b>5,865×10²¹</b>.</p>
+      <p>Como o espaço é astronômico (prova exata intratável), usa-se <b>busca heurística</b> (annealing + hill-climb; no Calc 1 os vizinhos favoráveis são resolvidos exatamente por DP de pesos). Resultado = <b>melhor encontrado</b>.</p>
+    </details>
+    <details class="explain">
+      <summary>Explicação desta aba</summary>
+      <p>Mostra o <b>top 100</b> de cada cálculo (gerado pelo Python em <code>calculos_especiais.js</code>). Use o seletor para navegar e ver a configuração vencedora com as imagens das cartas: no Cálculo 1, o lago do J1 e os vizinhos; no Cálculo 2, a mesa inteira com o Rio.</p>
+    </details>
+  </section>
+
+</main>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" alt="Carta ampliada">
+  <div class="cap" id="lightbox-cap"></div>
+</div>
+
+<script>
+/* ============================ CALC-START ============================ */
+// Dados do baralho: [id, animal, cor, tipo, fixed, mult, targetType, target]
+// targetType: "animal" | "color" | "" ; target: chave singular do alvo ("" se fixa)
+const ANIMALS = ["caracol", "libelula", "peixe", "sapo"];
+const COLORS = ["rosa", "verde", "laranja", "azul"];
+const A_LABEL = { caracol: "Caracol", libelula: "Libélula", peixe: "Peixe", sapo: "Sapo" };
+const C_LABEL = { rosa: "Rosa", verde: "Verde", laranja: "Laranja", azul: "Azul" };
+const A_ICON = { caracol: "🐌", libelula: "🪰", peixe: "🐟", sapo: "🐸" };
+const PLURAL = {
+  animal: { caracol: "Caracóis", libelula: "Libélulas", peixe: "Peixes", sapo: "Sapos" },
+  color:  { rosa: "Rosas", verde: "Verdes", laranja: "Laranjas", azul: "Azuis" },
+};
+const COLORS_HEX = { rosa: "#e91e63", verde: "#4caf50", laranja: "#ff9800", azul: "#2196f3" };
+const ANIMAL_HEX = { caracol: "#9b59b6", libelula: "#1abc9c", peixe: "#3498db", sapo: "#27ae60" };
+
+const RAW = [
+  [1,"caracol","rosa","Fixa",6,0,"",""],
+  [2,"caracol","rosa","Animal",0,3,"animal","peixe"],
+  [3,"caracol","verde","Animal",0,2,"animal","libelula"],
+  [4,"caracol","verde","Fixa",5,0,"",""],
+  [5,"caracol","laranja","Animal",0,2,"animal","libelula"],
+  [6,"caracol","azul","Cor",0,2,"color","rosa"],
+  [7,"caracol","verde","Cor",0,4,"color","laranja"],
+  [8,"caracol","rosa","Cor",0,3,"color","verde"],
+  [9,"libelula","laranja","Fixa",6,0,"",""],
+  [10,"libelula","verde","Fixa",8,0,"",""],
+  [11,"libelula","laranja","Animal",0,3,"animal","peixe"],
+  [12,"libelula","rosa","Cor",0,3,"color","verde"],
+  [13,"libelula","azul","Fixa",5,0,"",""],
+  [14,"libelula","rosa","Animal",0,3,"animal","peixe"],
+  [15,"libelula","rosa","Fixa",8,0,"",""],
+  [16,"libelula","azul","Cor",0,4,"color","laranja"],
+  [17,"libelula","laranja","Cor",0,3,"color","verde"],
+  [18,"libelula","azul","Animal",0,4,"animal","caracol"],
+  [19,"libelula","verde","Cor",0,5,"color","azul"],
+  [20,"libelula","verde","Animal",0,5,"animal","sapo"],
+  [21,"peixe","laranja","Fixa",5,0,"",""],
+  [22,"peixe","laranja","Animal",0,4,"animal","caracol"],
+  [23,"peixe","verde","Fixa",6,0,"",""],
+  [24,"peixe","laranja","Cor",0,2,"color","rosa"],
+  [25,"peixe","rosa","Fixa",8,0,"",""],
+  [26,"peixe","verde","Cor",0,2,"color","rosa"],
+  [27,"peixe","azul","Cor",0,3,"color","verde"],
+  [28,"peixe","rosa","Animal",0,5,"animal","sapo"],
+  [29,"peixe","azul","Animal",0,2,"animal","libelula"],
+  [30,"peixe","rosa","Cor",0,5,"color","azul"],
+  [31,"sapo","rosa","Fixa",5,0,"",""],
+  [32,"sapo","verde","Animal",0,3,"animal","peixe"],
+  [33,"sapo","rosa","Animal",0,4,"animal","caracol"],
+  [34,"sapo","rosa","Cor",0,4,"color","laranja"],
+  [35,"sapo","laranja","Cor",0,2,"color","rosa"],
+  [36,"sapo","verde","Animal",0,2,"animal","libelula"],
+];
+
+const DECK = RAW.map(r => ({ id: r[0], animal: r[1], color: r[2], tipo: r[3], fixed: r[4], mult: r[5], targetType: r[6], target: r[7] }));
+const TOTAL_DECK = 36;
+const HAND = 8;
+
+function comb(n, k) {
+  if (k < 0 || k > n) return 0;
+  k = Math.min(k, n - k);
+  let r = 1;
+  for (let i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+  return Math.round(r);
+}
+
+// P(X=k), X ~ Hypergeom(total, successes=S, draws) → array idx 0..draws
+function hyperPmf(total, S, draws) {
+  const denom = comb(total, draws);
+  const out = new Array(draws + 1).fill(0);
+  const lo = Math.max(0, draws - (total - S));
+  const hi = Math.min(draws, S);
+  for (let k = lo; k <= hi; k++) out[k] = comb(S, k) * comb(total - S, draws - k) / denom;
+  return out;
+}
+// distribuição da contagem de uma categoria numa mão de 8 (total 36)
+function hyperPmfCat(totalInDeck) {
+  return hyperPmf(TOTAL_DECK, totalInDeck, HAND);
+}
+
+// mesmas contagens usadas pelo Python
+function deckTotals() {
+  const a = {}, c = {};
+  ANIMALS.forEach(x => a[x] = 0);
+  COLORS.forEach(x => c[x] = 0);
+  DECK.forEach(cd => { a[cd.animal]++; c[cd.color]++; });
+  return { animal: a, color: c };
+}
+const TOTALS = deckTotals();
+
+function distStats(pmf) {
+  let mean = 0, mode = 0, best = -1, cdf = 0, median = -1;
+  for (let k = 0; k <= HAND; k++) {
+    mean += k * pmf[k];
+    if (pmf[k] > best) { best = pmf[k]; mode = k; }
+  }
+  for (let k = 0; k <= HAND; k++) {
+    cdf += pmf[k];
+    if (median < 0 && cdf >= 0.5) median = k;
+  }
+  return { mean, mode, median };
+}
+
+function cardEv(cd) {
+  if (cd.tipo === "Fixa") {
+    return { card: cd, ev: cd.fixed, min: cd.fixed, max: cd.fixed, p5: cd.fixed, p95: cd.fixed, dp: 0 };
+  }
+  const T = TOTALS[cd.targetType][cd.target];
+  const self = (cd.targetType === "animal" ? cd.animal : cd.color) === cd.target ? 1 : 0;
+  const S = T - self;
+  const pmf = hyperPmf(35, S, 7); // outras 7 cartas sorteadas entre 35
+  let meanC = self, varC = 0;
+  const ks = [];
+  for (let k = 0; k <= 7; k++) {
+    if (pmf[k] > 0) ks.push(k);
+    meanC += k * pmf[k];
+    varC += k * k * pmf[k];
+  }
+  varC -= (meanC - self) * (meanC - self);
+  let cdf = 0, ex5 = ks[0] || 0, ex95 = ks[ks.length - 1] || 0;
+  for (const k of ks) { cdf += pmf[k]; if (cdf >= 0.05) { ex5 = k; break; } }
+  cdf = 0;
+  for (const k of ks) { cdf += pmf[k]; if (cdf >= 0.95) { ex95 = k; break; } }
+  return {
+    card: cd,
+    ev: cd.mult * meanC,
+    min: cd.mult * self,
+    max: cd.mult * (self + Math.min(7, S)),
+    p5: cd.mult * (self + ex5),
+    p95: cd.mult * (self + ex95),
+    dp: Math.sqrt(varC) * cd.mult,
+  };
+}
+
+// PRNG mulberry32 com semente fixa
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function simulate(n, seed = 42) {
+  const rnd = mulberry32(seed);
+  const countHists = {};
+  [...ANIMALS, ...COLORS].forEach(x => countHists[x] = new Array(HAND + 1).fill(0));
+  const central = [], full = [];
+  const arr = [];
+  for (let i = 0; i < 36; i++) arr.push(DECK[i]);
+  const handsIds = new Uint16Array(n * 8);
+  const handScores = new Uint16Array(n);
+  for (let i = 0; i < n; i++) {
+    // Fisher-Yates completo (deck baralhado)
+    for (let j = 35; j > 0; j--) {
+      const r = Math.floor(rnd() * (j + 1));
+      const tmp = arr[j]; arr[j] = arr[r]; arr[r] = tmp;
+    }
+    const hand = arr.slice(0, 8);
+    const center = hand.slice(0, 4);
+    for (let j = 0; j < 8; j++) handsIds[i * 8 + j] = hand[j].id;
+    const a = {}, c = {};
+    ANIMALS.forEach(x => a[x] = 0);
+    COLORS.forEach(x => c[x] = 0);
+    hand.forEach(cd => { a[cd.animal]++; c[cd.color]++; });
+    ANIMALS.forEach(x => countHists[x][a[x]]++);
+    COLORS.forEach(x => countHists[x][c[x]]++);
+    let sc = 0, fc = 0;
+    hand.forEach(cd => {
+      const v = cd.tipo === "Fixa" ? cd.fixed : cd.mult * (cd.targetType === "animal" ? a[cd.target] : c[cd.target]);
+      fc += v;
+      if (center.includes(cd)) sc += v;
+    });
+    central.push(sc); full.push(fc);
+    handScores[i] = sc;
+  }
+  central.sort((a, b) => a - b);
+  const q = (p) => central[Math.min(n - 1, Math.floor(p * n))];
+  const mean = central.reduce((s, x) => s + x, 0) / n;
+  const varC = central.reduce((s, x) => s + x * x, 0) / n - mean * mean;
+  return {
+    n,
+    mean, sd: Math.sqrt(varC),
+    p5: q(0.05), p50: q(0.5), p95: q(0.95),
+    fullMean: full.reduce((s, x) => s + x, 0) / n,
+    scores: central,
+    countHists,
+    handsIds,
+    handScores,
+  };
+}
+
+// K melhores mãos (incluindo empates no corte), ordenadas por score decrescente
+function topHands(sim, K) {
+  const n = sim.n;
+  const idx = Array.from({ length: n }, (_, i) => i);
+  idx.sort((a, b) => sim.handScores[b] - sim.handScores[a]);
+  const cutoff = sim.handScores[idx[Math.min(K, n) - 1]];
+  const MAX = 200;
+  const list = [];
+  for (const i of idx) {
+    if (sim.handScores[i] < cutoff) break;
+    list.push(i);
+    if (list.length >= MAX) break;
+  }
+  return list.map(i => ({
+    score: sim.handScores[i],
+    center: [0, 1, 2, 3].map(j => sim.handsIds[i * 8 + j]),
+    side: [4, 5, 6, 7].map(j => sim.handsIds[i * 8 + j]),
+  }));
+}
+
+// Máximo teórico (método inteligente): enumera as C(36,4) escolhas de 4 centrais;
+// para cada uma, o apoio ótimo = 4 cartas restantes de maior peso aditivo (exato).
+// Esquerda × direita do apoio: adiado (Fase 1 — laterais pontuam 0).
+let _optimal = null;
+let _optimalTop = null;
+function computeOptimal() {
+  if (_optimal) return _optimal;
+  const n = DECK.length;
+  const pick = [];
+  const inCenter = new Array(n).fill(false);
+  let topList = [];
+  const add = (res) => {
+    topList.push(res);
+    topList.sort((a, b) => b.total - a.total);
+    if (topList.length > 10) {
+      const cutoff = topList[9].total;
+      topList = topList.filter(r => r.total >= cutoff);
+      if (topList.length > 15) topList.length = 15;
+    }
+  };
+  const evaluate = () => {
+    const center = pick.map(id => DECK[id - 1]);
+    const a = {}, c = {};
+    ANIMALS.forEach(x => a[x] = 0);
+    COLORS.forEach(x => c[x] = 0);
+    center.forEach(cd => { a[cd.animal]++; c[cd.color]++; });
+    let base = 0;
+    center.forEach(cd => {
+      if (cd.tipo === "Fixa") base += cd.fixed;
+      else base += cd.mult * (cd.targetType === "animal" ? a[cd.target] : c[cd.target]);
+    });
+    const weights = {};
+    DECK.forEach(x => { if (!inCenter[x.id - 1]) weights[x.id] = 0; });
+    center.forEach(cd => {
+      if (cd.tipo === "Fixa") return;
+      DECK.forEach(x => {
+        if (inCenter[x.id - 1]) return;
+        if ((cd.targetType === "animal" ? x.animal === cd.target : x.color === cd.target)) weights[x.id] += cd.mult;
+      });
+    });
+    const top = Object.keys(weights).map(Number).sort((p, q) => weights[q] - weights[p]).slice(0, 4);
+    add({ total: base + top.reduce((s, id) => s + weights[id], 0), center: pick.slice(), side: top });
+  };
+  const rec = (start, k) => {
+    if (k === 4) { evaluate(); return; }
+    for (let i = start; i < n; i++) {
+      pick.push(i + 1);
+      inCenter[i] = true;
+      rec(i + 1, k + 1);
+      inCenter[i] = false;
+      pick.pop();
+    }
+  };
+  rec(0, 0);
+  _optimal = topList[0];
+  _optimalTop = topList;
+  return _optimal;
+}
+
+function optimalTop() {
+  if (!_optimal) computeOptimal();
+  return _optimalTop;
+}
+
+// ---------------- Fase 2: partida completa com vizinhos ----------------
+
+function cardValue(cd, counts) {
+  if (cd.tipo === "Fixa") return cd.fixed;
+  return cd.mult * counts[cd.targetType][cd.target];
+}
+
+function pondCounts(cards) {
+  const a = {}, c = {};
+  ANIMALS.forEach(x => a[x] = 0);
+  COLORS.forEach(x => c[x] = 0);
+  cards.forEach(cd => { a[cd.animal]++; c[cd.color]++; });
+  return { animal: a, color: c };
+}
+
+// DP (esq2/centro4/dir2) — exato, dado o conteúdo dos vizinhos
+function bestAssignment(valsLeft, valsCenter, valsRight) {
+  const n = valsLeft.length;
+  const NEG = -1e18;
+  let dp = Array.from({ length: 3 }, () => Array(3).fill(NEG));
+  dp[0][0] = 0;
+  const parents = [];
+  for (let i = 0; i < n; i++) {
+    const ndp = Array.from({ length: 3 }, () => Array(3).fill(NEG));
+    const ch = Array.from({ length: 3 }, () => Array(3).fill(-1));
+    for (let l = 0; l < 3; l++) for (let r = 0; r < 3; r++) {
+      const base = dp[l][r];
+      if (base <= NEG / 2) continue;
+      const centerUsed = i - l - r;
+      if (l < 2) { const v = base + valsLeft[i]; if (v > ndp[l + 1][r]) { ndp[l + 1][r] = v; ch[l + 1][r] = 0; } }
+      if (r < 2) { const v = base + valsRight[i]; if (v > ndp[l][r + 1]) { ndp[l][r + 1] = v; ch[l][r + 1] = 2; } }
+      if (centerUsed < 4) { const v = base + valsCenter[i]; if (v > ndp[l][r]) { ndp[l][r] = v; ch[l][r] = 1; } }
+    }
+    parents.push(ch);
+    dp = ndp;
+  }
+  const total = dp[2][2];
+  const pos = new Array(n);
+  let l = 2, r = 2;
+  for (let i = n - 1; i >= 0; i--) {
+    const c = parents[i][l][r];
+    pos[i] = c;
+    if (c === 0) l--; else if (c === 2) r--;
+  }
+  return { total, pos };
+}
+
+function quantileOf(sortedArr, p) {
+  return sortedArr[Math.min(sortedArr.length - 1, Math.floor(p * sortedArr.length))];
+}
+
+function simulateGame(nPlayers, n, seed = 42) {
+  const rnd = mulberry32(seed);
+  const deckIds = DECK.map(c => c.id);
+  const arr = deckIds.slice();
+  const total = n * nPlayers;
+  const bScores = new Array(total);
+  const oScores = new Array(total);
+  const bCols = { left: 0, center: 0, right: 0 };
+  const oCols = { left: 0, center: 0, right: 0 };
+  let winShare = 0;
+  const ev = {};
+  DECK.forEach(cd => ev[cd.id] = { left: 0, center: 0, right: 0, opt: 0, nl: 0, nc: 0, nr: 0, no: 0 });
+  for (let it = 0; it < n; it++) {
+    for (let j = 35; j > 0; j--) {
+      const ri = Math.floor(rnd() * (j + 1));
+      const t = arr[j]; arr[j] = arr[ri]; arr[ri] = t;
+    }
+    const ponds = [];
+    for (let p = 0; p < nPlayers; p++) {
+      ponds.push(arr.slice(p * 8, p * 8 + 8).map(id => DECK[id - 1]));
+    }
+    const cnts = ponds.map(pc => pondCounts(pc));
+    const bArr = [], oArr = [];
+    for (let p = 0; p < nPlayers; p++) {
+      const own = ponds[p];
+      const cntOwn = cnts[p];
+      const cntLeft = cnts[(p - 1 + nPlayers) % nPlayers];
+      const cntRight = cnts[(p + 1) % nPlayers];
+      let bl = 0, bc = 0, br = 0;
+      for (let k = 0; k < 2; k++) bl += cardValue(own[k], cntLeft);
+      for (let k = 2; k < 6; k++) bc += cardValue(own[k], cntOwn);
+      for (let k = 6; k < 8; k++) br += cardValue(own[k], cntRight);
+      const bs = bl + bc + br;
+      bArr.push(bs);
+      bCols.left += bl; bCols.center += bc; bCols.right += br;
+      for (let k = 0; k < 8; k++) {
+        const cd = own[k];
+        const posKey = k < 2 ? "left" : k < 6 ? "center" : "right";
+        const v = k < 2 ? cardValue(cd, cntLeft) : k < 6 ? cardValue(cd, cntOwn) : cardValue(cd, cntRight);
+        ev[cd.id][posKey] += v;
+        ev[cd.id]["n" + posKey[0]]++;
+      }
+      const vl = own.map(cd => cardValue(cd, cntLeft));
+      const vc = own.map(cd => cardValue(cd, cntOwn));
+      const vr = own.map(cd => cardValue(cd, cntRight));
+      const ass = bestAssignment(vl, vc, vr);
+      let ol = 0, oc = 0, orr = 0;
+      for (let k = 0; k < 8; k++) {
+        const v = ass.pos[k] === 0 ? vl[k] : ass.pos[k] === 1 ? vc[k] : vr[k];
+        if (ass.pos[k] === 0) ol += v; else if (ass.pos[k] === 1) oc += v; else orr += v;
+        ev[own[k].id].opt += v;
+        ev[own[k].id].no++;
+      }
+      oArr.push(ass.total);
+      oCols.left += ol; oCols.center += oc; oCols.right += orr;
+    }
+    const maxS = Math.max(...oArr);
+    const tied = oArr.filter(s => s === maxS).length;
+    winShare += tied * (1 / tied);
+    for (let p = 0; p < nPlayers; p++) {
+      bScores[it * nPlayers + p] = bArr[p];
+      oScores[it * nPlayers + p] = oArr[p];
+    }
+  }
+  const stats = (scores) => {
+    const s = scores.slice().sort((a, b) => a - b);
+    const mean = scores.reduce((x, y) => x + y, 0) / total;
+    const sd = Math.sqrt(scores.reduce((x, y) => x + y * y, 0) / total - mean * mean);
+    return { mean, sd, p5: quantileOf(s, 0.05), p50: quantileOf(s, 0.5), p95: quantileOf(s, 0.95) };
+  };
+  const evPos = {};
+  for (const id in ev) {
+    const a = ev[id];
+    evPos[id] = {
+      left: a.nl ? a.left / a.nl : 0,
+      center: a.nc ? a.center / a.nc : 0,
+      right: a.nr ? a.right / a.nr : 0,
+      opt: a.no ? a.opt / a.no : 0,
+    };
+  }
+  return {
+    n_sims: n, n_players: nPlayers,
+    baseline: stats(bScores),
+    optimized: stats(oScores),
+    cols_base: { left: bCols.left / total, center: bCols.center / total, right: bCols.right / total },
+    cols_opt: { left: oCols.left / total, center: oCols.center / total, right: oCols.right / total },
+    win_share: winShare / total,
+    ev_pos: evPos,
+    bScores, oScores,
+  };
+}
+
+// EV analítico por posição (centro vs lateral) — carta em sua mão
+function evPosition(cd) {
+  if (cd.tipo === "Fixa") return { center: cd.fixed, lateral: cd.fixed };
+  const T = TOTALS[cd.targetType][cd.target];
+  const self = (cd.targetType === "animal" ? cd.animal : cd.color) === cd.target ? 1 : 0;
+  const eHand = self + 7 * (T - self) / 35;
+  const eNeighbor = 8 * (T - eHand) / 28;
+  return { center: cd.mult * eHand, lateral: cd.mult * eNeighbor };
+}
+/* ============================ CALC-END ============================ */
+
+// ===================== Renderização =====================
+let assetsOk = null;
+const $ = (id) => document.getElementById(id);
+const charts = {};
+
+function destroyChart(name) {
+  if (charts[name]) { charts[name].destroy(); delete charts[name]; }
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+}
+
+function scoreText(cd) {
+  if (cd.tipo === "Fixa") return cd.fixed + " pts";
+  return cd.mult + " × " + PLURAL[cd.targetType][cd.target];
+}
+
+function cardImg(id) {
+  if (assetsOk === false) return cardSvg(DECK[id - 1]);
+  return "assets/cards/card_" + String(id).padStart(2, "0") + ".png";
+}
+
+// Placeholder SVG (usado quando os assets de cartas não estão hospedados)
+function cardSvg(cd) {
+  const color = COLORS_HEX[cd.color];
+  const icon = A_ICON[cd.animal];
+  const initial = A_LABEL[cd.animal][0];
+  let scorePart = "";
+  if (cd.tipo === "Fixa") {
+    scorePart = `<text x="50" y="132" font-size="28" font-weight="bold" text-anchor="middle" fill="#fff">${cd.fixed}</text>`;
+  } else if (cd.targetType === "animal") {
+    scorePart = `<text x="50" y="130" font-size="17" font-weight="bold" text-anchor="middle" fill="#fff">${cd.mult}× ${A_ICON[cd.target]} ${A_LABEL[cd.target][0]}</text>`;
+  } else {
+    const tc = COLORS_HEX[cd.target];
+    scorePart = `<text x="50" y="130" font-size="17" font-weight="bold" text-anchor="middle" fill="#fff">${cd.mult}×</text>` +
+      `<rect x="60" y="118" width="14" height="14" rx="3" fill="${tc}" stroke="#fff" stroke-width="1.5"/>`;
+  }
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150">` +
+    `<rect width="100" height="150" fill="${color}"/>` +
+    `<rect x="3" y="3" width="94" height="144" rx="8" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="3"/>` +
+    `<circle cx="17" cy="17" r="11" fill="rgba(255,255,255,.92)"/>` +
+    `<text x="17" y="21" font-size="13" font-weight="bold" text-anchor="middle" fill="#334155">${initial}</text>` +
+    `<text x="50" y="92" font-size="52" text-anchor="middle">${icon}</text>` +
+    scorePart +
+    `</svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+function probeAssets(cb) {
+  const img = new Image();
+  img.onload = () => { assetsOk = true; cb(true); };
+  img.onerror = () => { assetsOk = false; cb(false); };
+  img.src = "assets/cards/card_01.png";
+}
+
+function thumb(cd) {
+  const src = cardImg(cd.id);
+  return `<span class="thumb"><img class="mini" src="${src}" alt="Carta ${cd.id}" loading="lazy"><img class="big" src="${src}" alt=""></span>`;
+}
+
+function openLightbox(id) {
+  const cd = DECK.find(c => c.id === id);
+  if (!cd) return;
+  $("lightbox-img").src = cardImg(id);
+  $("lightbox-cap").textContent = `#${cd.id} · ${A_LABEL[cd.animal]} ${C_LABEL[cd.color]} · ${scoreText(cd)}`;
+  $("lightbox").classList.add("on");
+}
+
+function closeLightbox() {
+  $("lightbox").classList.remove("on");
+}
+
+function tabs() {
+  document.querySelectorAll("#tabs button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#tabs button").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll("main section").forEach(s => s.classList.remove("active"));
+      btn.classList.add("active");
+      $("section-" + btn.dataset.tab)?.classList.remove("active");
+      document.getElementById(btn.dataset.tab).classList.add("active");
+    });
+  });
+}
+
+function renderDeck() {
+  const tipo = { Fixa: 0, Animal: 0, Cor: 0 };
+  const alvos = {};
+  DECK.forEach(cd => { tipo[cd.tipo]++; if (cd.tipo !== "Fixa") {
+    const k = (cd.tipo === "Animal" ? "Animal" : "Cor") + " × " + PLURAL[cd.targetType][cd.target];
+    alvos[k] = (alvos[k] || 0) + 1;
+  }});
+  $("stat-total").innerHTML = "36 cartas" + "<small>4 animais · 4 cores · 3 tipos</small>";
+  $("stat-tipos").innerHTML = Object.entries(tipo).map(([k, v]) =>
+    `<span class="badge ${k === "Fixa" ? "b-fixa" : k === "Animal" ? "b-animal" : "b-cor"}">${k}: ${v}</span> `).join("");
+  $("stat-alvos").innerHTML = Object.entries(alvos).sort((a, b) => b[1] - a[1]).map(([k, v]) =>
+    `<div style="font-size:12px;margin:2px 0">${esc(k)} — <b>${v}</b></div>`).join("");
+
+  destroyChart("animals");
+  charts.animals = new Chart($("chart-animals"), {
+    type: "bar",
+    data: {
+      labels: ANIMALS.map(a => A_ICON[a] + " " + A_LABEL[a]),
+      datasets: [{ data: ANIMALS.map(a => TOTALS.animal[a]), backgroundColor: ANIMALS.map(a => ANIMAL_HEX[a]) }],
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+  destroyChart("colors");
+  charts.colors = new Chart($("chart-colors"), {
+    type: "bar",
+    data: {
+      labels: COLORS.map(c => C_LABEL[c]),
+      datasets: [{ data: COLORS.map(c => TOTALS.color[c]), backgroundColor: COLORS.map(c => COLORS_HEX[c]) }],
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+
+  const rows = DECK.map(cd =>
+    `<tr><td>${cd.id}</td><td>${thumb(cd)}</td><td>${A_ICON[cd.animal]} ${A_LABEL[cd.animal]}</td><td><span style="color:${COLORS_HEX[cd.color]};font-weight:700">●</span> ${C_LABEL[cd.color]}</td>` +
+    `<td><span class="badge ${cd.tipo === "Fixa" ? "b-fixa" : cd.tipo === "Animal" ? "b-animal" : "b-cor"}">${cd.tipo}</span></td><td>${esc(scoreText(cd))}</td></tr>`).join("");
+  $("deck-table").innerHTML = `<thead><tr><th>#</th><th>Imagem</th><th>Animal</th><th>Cor</th><th>Tipo</th><th>Pontuação</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+function renderDist() {
+  const cats = [...ANIMALS, ...COLORS];
+  const pmfs = {};
+  cats.forEach(x => pmfs[x] = hyperPmfCat(ANIMALS.includes(x) ? TOTALS.animal[x] : TOTALS.color[x]));
+
+  destroyChart("dist");
+  charts.dist = new Chart($("chart-dist"), {
+    type: "line",
+    data: {
+      labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8"],
+      datasets: cats.map(x => ({
+        label: ANIMALS.includes(x) ? A_LABEL[x] : C_LABEL[x],
+        data: pmfs[x].map(p => +(p * 100).toFixed(2)),
+        borderColor: ANIMALS.includes(x) ? ANIMAL_HEX[x] : COLORS_HEX[x],
+        backgroundColor: "transparent",
+        tension: 0.3,
+        borderWidth: 2,
+      })),
+    },
+    options: { plugins: { legend: { position: "bottom" } }, scales: { y: { title: { display: true, text: "P(k) %" }, beginAtZero: true } } },
+  });
+
+  const summary = cats.map(x => {
+    const st = distStats(pmfs[x]);
+    let p2 = 0, p97 = 0, cdf = 0;
+    for (let k = 0; k <= HAND; k++) { cdf += pmfs[x][k]; if (p2 === 0 && cdf >= 0.025) p2 = k; if (cdf >= 0.975) { p97 = k; break; } }
+    const tot = ANIMALS.includes(x) ? TOTALS.animal[x] : TOTALS.color[x];
+    const label = ANIMALS.includes(x) ? A_LABEL[x] : C_LABEL[x];
+    return `<tr><td>${label}</td><td>${tot}</td><td>${st.mean.toFixed(2)}</td><td>${st.mode}</td><td>${st.median}</td><td>${p2}</td><td>${p97}</td></tr>`;
+  }).join("");
+  $("dist-summary").innerHTML = `<thead><tr><th>Categoria</th><th>Total no baralho</th><th>Média</th><th>Moda</th><th>Mediana</th><th>P2.5</th><th>P97.5</th></tr></thead><tbody>${summary}</tbody>`;
+
+  const details = cats.map(x => {
+    const tot = ANIMALS.includes(x) ? TOTALS.animal[x] : TOTALS.color[x];
+    const label = ANIMALS.includes(x) ? A_LABEL[x] : C_LABEL[x];
+    let cdf = 0;
+    const rows = pmfs[x].map((p, k) => {
+      cdf += p;
+      return `<tr><td>${k}</td><td>${(p * 100).toFixed(2)}%</td><td>${(cdf * 100).toFixed(2)}%</td></tr>`;
+    }).join("");
+    return `<details><summary>${label} (total: ${tot})</summary><div class="table-box" style="margin-top:8px"><table><thead><tr><th>k</th><th>P(k)</th><th>P acum.</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
+  }).join("");
+  $("dist-details").innerHTML = details;
+}
+
+function allEv() {
+  return DECK.map(cd => cardEv(cd));
+}
+
+function renderEv(sort) {
+  const infos = allEv();
+  const key = { id: i => i.card.id, ev: i => -i.ev, range: i => -(i.max - i.min) }[sort] || (i => i.card.id);
+  const sorted = [...infos].sort((a, b) => key(a) - key(b));
+
+  const best = [...infos].sort((a, b) => b.ev - a.ev)[0];
+  const worst = [...infos].sort((a, b) => a.ev - b.ev)[0];
+  const mean = infos.reduce((s, x) => s + x.ev, 0) / infos.length;
+  const exactHand = infos.reduce((s, x) => s + x.ev, 0) / 9;
+  $("ev-cards").innerHTML = [
+    `<div class="card"><div class="stat">${best.ev.toFixed(1)}<small>Melhor EV central — #${best.card.id} ${A_ICON[best.card.animal]} ${scoreText(best.card)}</small></div></div>`,
+    `<div class="card"><div class="stat">${mean.toFixed(2)}<small>EV médio por carta</small></div></div>`,
+    `<div class="card"><div class="stat">${worst.ev.toFixed(1)}<small>Menor EV central — #${worst.card.id} ${A_ICON[worst.card.animal]} ${scoreText(worst.card)}</small></div></div>`,
+    `<div class="card"><div class="stat">${exactHand.toFixed(2)}<small>Score esperado da mão (ΣEV/9, baseline aleatória)</small></div></div>`,
+  ].join("");
+
+  const rows = sorted.map(x => {
+    const cd = x.card;
+    return `<tr><td>${cd.id}</td><td>${thumb(cd)}</td><td>${A_ICON[cd.animal]} ${A_LABEL[cd.animal]}</td>` +
+      `<td><span style="color:${COLORS_HEX[cd.color]};font-weight:700">●</span> ${C_LABEL[cd.color]}</td>` +
+      `<td><span class="badge ${cd.tipo === "Fixa" ? "b-fixa" : cd.tipo === "Animal" ? "b-animal" : "b-cor"}">${cd.tipo}</span></td>` +
+      `<td>${esc(scoreText(cd))}</td><td class="highlight">${x.ev.toFixed(2)}</td><td>${x.min.toFixed(0)}</td><td>${x.max.toFixed(0)}</td><td>${x.p5.toFixed(0)}</td><td>${x.p95.toFixed(0)}</td><td>${x.dp.toFixed(2)}</td></tr>`;
+  }).join("");
+  $("ev-table").innerHTML = `<thead><tr><th>#</th><th>Imagem</th><th>Animal</th><th>Cor</th><th>Tipo</th><th>Pontuação</th><th>EV</th><th>Min</th><th>Max</th><th>P5</th><th>P95</th><th>DP</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+function pondScore(center, side) {
+  const pond = center.concat(side);
+  const a = {}, c = {};
+  ANIMALS.forEach(x => a[x] = 0);
+  COLORS.forEach(x => c[x] = 0);
+  pond.forEach(cd => { a[cd.animal]++; c[cd.color]++; });
+  let total = 0;
+  const contribs = {};
+  center.forEach(cd => {
+    const v = cd.tipo === "Fixa" ? cd.fixed : cd.mult * (cd.targetType === "animal" ? a[cd.target] : c[cd.target]);
+    contribs[cd.id] = v;
+    total += v;
+  });
+  return { total, contribs };
+}
+
+let lastSim = null;
+const bestState = { list: [], page: 0, K: 10, n: 0 };
+
+function renderPondPage() {
+  const el = $("best-hand");
+  const st = bestState;
+  const item = st.list[st.page];
+  if (!item) { el.innerHTML = ""; $("best-hand-note").innerHTML = ""; $("best-count").textContent = ""; return; }
+  const center = item.center.map(id => DECK[id - 1]);
+  const side = item.side.map(id => DECK[id - 1]);
+  const { total, contribs } = pondScore(center, side);
+  el.innerHTML = pondHTML(center, side, contribs);
+  const rankLabel = st.page === 0 ? "melhor" : (st.page + 1) + "ª melhor";
+  $("best-count").textContent = `Mão ${st.page + 1} / ${st.list.length} · ${item.score} pts`;
+  $("best-hand-note").innerHTML =
+    `${rankLabel} mão entre ${st.n.toLocaleString("pt-BR")} simulações (histórico com empates no corte). ` +
+    `Total (4 centrais contra o Pond de 8): <b>${total} pts</b>. Cartas laterais não pontuam nesta fase (Fase 1).`;
+  $("btn-first").disabled = st.page === 0;
+  $("btn-prev").disabled = st.page === 0;
+  $("btn-next").disabled = st.page >= st.list.length - 1;
+  $("btn-last").disabled = st.page >= st.list.length - 1;
+}
+
+function gotoBestPage(i) {
+  const st = bestState;
+  if (!st.list.length) return;
+  st.page = Math.max(0, Math.min(st.list.length - 1, i));
+  renderPondPage();
+}
+
+function rebuildTop(K) {
+  if (!lastSim) return;
+  bestState.K = K;
+  bestState.n = lastSim.n;
+  bestState.list = topHands(lastSim, K);
+  bestState.page = 0;
+  renderPondPage();
+}
+
+function pondCellHTML(cd, kind, contribs) {
+  const tag = kind === "central" ? `#${cd.id} · ${contribs[cd.id]} pts` : `#${cd.id} · LATERAL · 0 pts`;
+  const lock = kind === "side" ? `<span class="lock">0 pts</span>` : "";
+  return `<div class="pond-cell ${kind}">${lock}<img src="${cardImg(cd.id)}" alt="Carta ${cd.id}"><div class="tag">${tag}</div></div>`;
+}
+
+function pondHTML(center, side, contribs) {
+  const layout = [
+    [side[0], "side"], [center[0], "central"], [center[1], "central"], [side[1], "side"],
+    [side[2], "side"], [center[2], "central"], [center[3], "central"], [side[3], "side"],
+  ];
+  return layout.map(([cd, kind]) => pondCellHTML(cd, kind, contribs)).join("");
+}
+
+function pondFromTop(item) {
+  const center = item.center.map(id => DECK[id - 1]);
+  const side = item.side.map(id => DECK[id - 1]);
+  const { total, contribs } = pondScore(center, side);
+  return { html: pondHTML(center, side, contribs), total };
+}
+
+function renderCompare() {
+  const top = optimalTop();
+  const ia = Math.min(parseInt($("pond-a-select").value, 10) || 0, top.length - 1);
+  const ib = Math.min(parseInt($("pond-b-select").value, 10) || 0, top.length - 1);
+  const a = pondFromTop(top[ia]);
+  const b = pondFromTop(top[ib]);
+  $("pond-a").innerHTML = a.html;
+  $("pond-b").innerHTML = b.html;
+  $("max-compare-note").innerHTML =
+    `Lago A (${ia + 1}º): <b>${a.total} pts</b> · Lago B (${ib + 1}º): <b>${b.total} pts</b> — colunas laterais não pontuam (Fase 1).`;
+}
+
+function initMaxTab() {
+  const top = optimalTop();
+  $("max-total").textContent = top[0].total + " pts";
+  const opts = top.map((r, i) => `<option value="${i}">${i + 1}º · ${r.total} pts · C ${r.center.join(",")}</option>`).join("");
+  $("pond-a-select").innerHTML = opts;
+  $("pond-b-select").innerHTML = opts;
+  $("pond-a-select").value = "0";
+  $("pond-b-select").value = String(Math.min(1, top.length - 1));
+  renderCompare();
+
+  const cFreq = {}, sFreq = {};
+  top.forEach(r => {
+    r.center.forEach(id => cFreq[id] = (cFreq[id] || 0) + 1);
+    r.side.forEach(id => sFreq[id] = (sFreq[id] || 0) + 1);
+  });
+  const most = (f) => Object.entries(f).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([id, n]) => `#${id} (${n})`).join(", ");
+  const rows = top.map((r, i) =>
+    `<tr><td>${i + 1}º</td><td class="highlight">${r.total}</td><td>${r.center.map(id => "#" + id).join(", ")}</td><td>${r.side.map(id => "#" + id).join(", ")}</td></tr>`).join("");
+  $("max-top10").innerHTML = `<thead><tr><th>Rank</th><th>Total</th><th>Centrais</th><th>Apoio (lateral)</th></tr></thead><tbody>${rows}</tbody>`;
+  $("max-variation").innerHTML =
+    `No top ${top.length}: ${Object.keys(cFreq).length} cartas centrais distintas e ${Object.keys(sFreq).length} de apoio distintas. ` +
+    `Centrais mais frequentes: ${most(cFreq)}. Apoio mais frequente: ${most(sFreq)}.`;
+}
+
+let lastF2 = null;
+
+function runFase2() {
+  const np = parseInt($("f2-players").value, 10);
+  const n = parseInt($("f2-trials").value, 10);
+  const sim = simulateGame(np, n, 42);
+  lastF2 = sim;
+  const b = sim.baseline, o = sim.optimized;
+  const refF1 = allEv().reduce((s, x) => s + x.ev, 0) / 9;
+  const gain = o.mean - b.mean;
+  $("f2-cards").innerHTML = [
+    `<div class="card"><div class="stat">${b.mean.toFixed(2)}<small>Média baseline (colunas aleatórias)</small></div></div>`,
+    `<div class="card"><div class="stat">${o.mean.toFixed(2)}<small>Média otimizado (posicionamento ótimo)</small></div></div>`,
+    `<div class="card"><div class="stat">+${gain.toFixed(2)}<small>Ganho da otimização (${(100 * gain / b.mean).toFixed(1)}%)</small></div></div>`,
+    `<div class="card"><div class="stat">${o.p5} / ${o.p50} / ${o.p95}<small>P5 / P50 / P95 (otimizado)</small></div></div>`,
+    `<div class="card"><div class="stat">${(100 * sim.win_share).toFixed(1)}%<small>Taxa de vitória por jogador (${np}p, simetria ≈ ${(100 / np).toFixed(0)}%)</small></div></div>`,
+    `<div class="card"><div class="stat">${refF1.toFixed(2)}<small>Referência Fase 1 (só centrais)</small></div></div>`,
+  ].join("");
+  renderF2Hist(sim);
+  renderF2Cols(sim);
+  renderF2Ev("id");
+}
+
+function renderF2Hist(sim) {
+  const scores = sim.oScores;
+  const maxS = scores.reduce((a, b) => Math.max(a, b), 0);
+  const nbins = 24;
+  const step = Math.max(1, Math.ceil((maxS + 1) / nbins));
+  const hist = new Array(nbins).fill(0);
+  scores.forEach(s => hist[Math.min(nbins - 1, Math.floor(s / step))]++);
+  const labels = hist.map((_, i) => `${i * step}–${(i + 1) * step - 1}`);
+  destroyChart("f2");
+  charts.f2 = new Chart($("chart-f2"), {
+    type: "bar",
+    data: { labels, datasets: [{ data: hist, backgroundColor: "#0f766e" }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+}
+
+function renderF2Cols(sim) {
+  const labels = ["Esquerda", "Centro", "Direita"];
+  const keys = ["left", "center", "right"];
+  destroyChart("f2cols");
+  charts.f2cols = new Chart($("chart-f2cols"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Baseline", data: keys.map(k => +sim.cols_base[k].toFixed(2)), backgroundColor: "#94a3b8" },
+        { label: "Otimizado", data: keys.map(k => +sim.cols_opt[k].toFixed(2)), backgroundColor: "#0f766e" },
+      ],
+    },
+    options: { plugins: { legend: { position: "bottom" } }, scales: { y: { beginAtZero: true } } },
+  });
+}
+
+function renderF2Ev(sort) {
+  if (!lastF2) return;
+  const key = { id: i => i.cd.id, opt: i => -i.opt, delta: i => -(i.delta) }[sort] || (i => i.cd.id);
+  const rows = DECK.map(cd => {
+    const ana = evPosition(cd);
+    const emp = lastF2.ev_pos[cd.id];
+    const opt = emp ? emp.opt : ana.center;
+    const rec = ana.center >= ana.lateral ? "Centro" : "Lateral";
+    const delta = opt - ana.center;
+    return {
+      cd, opt, delta,
+      html: `<tr><td>${cd.id}</td><td>${A_ICON[cd.animal]} ${A_LABEL[cd.animal]} <span style="color:${COLORS_HEX[cd.color]}">●</span> ${C_LABEL[cd.color]}</td>` +
+        `<td>${ana.center.toFixed(2)}</td><td>${ana.lateral.toFixed(2)}</td><td>${rec}</td>` +
+        `<td class="highlight">${opt.toFixed(2)}</td><td>${delta.toFixed(2)}</td></tr>`,
+    };
+  }).sort((a, b) => key(a) - key(b));
+  $("f2-ev-table").innerHTML = `<thead><tr><th>#</th><th>Carta</th><th>EV centro</th><th>EV lateral</th><th>Recomendada</th><th>EV ótimo (MC)</th><th>Δ ótimo−centro</th></tr></thead><tbody>` + rows.map(r => r.html).join("") + `</tbody>`;
+}
+
+function dealOnce(nPlayers, seed) {
+  const rnd = mulberry32(seed);
+  const arr = DECK.map(c => c.id);
+  for (let j = 35; j > 0; j--) {
+    const r = Math.floor(rnd() * (j + 1));
+    const t = arr[j]; arr[j] = arr[r]; arr[r] = t;
+  }
+  const ponds = [];
+  for (let p = 0; p < nPlayers; p++) ponds.push(arr.slice(p * 8, p * 8 + 8).map(id => DECK[id - 1]));
+  const river = arr.slice(nPlayers * 8, nPlayers * 8 + 4).map(id => DECK[id - 1]);
+  return { ponds, river };
+}
+
+function renderMesa() {
+  const np = parseInt($("f2-players").value, 10) || 4;
+  const seed = (Math.floor(Math.random() * 2 ** 31)) >>> 0;
+  const { ponds, river } = dealOnce(np, seed);
+  const cnts = ponds.map(pc => pondCounts(pc));
+  const players = ponds.map((own, p) => {
+    const cntLeft = cnts[(p - 1 + np) % np];
+    const cntRight = cnts[(p + 1) % np];
+    const vl = own.map(cd => cardValue(cd, cntLeft));
+    const vc = own.map(cd => cardValue(cd, cnts[p]));
+    const vr = own.map(cd => cardValue(cd, cntRight));
+    const ass = bestAssignment(vl, vc, vr);
+    const leftIds = [], centerIds = [], rightIds = [], valById = {};
+    let total = 0;
+    for (let k = 0; k < 8; k++) {
+      const v = ass.pos[k] === 0 ? vl[k] : ass.pos[k] === 1 ? vc[k] : vr[k];
+      valById[own[k].id] = v;
+      total += v;
+      if (ass.pos[k] === 0) leftIds.push(own[k]);
+      else if (ass.pos[k] === 1) centerIds.push(own[k]);
+      else rightIds.push(own[k]);
+    }
+    return { p, leftIds, centerIds, rightIds, valById, total };
+  });
+
+  const box = (pl) => {
+    const leftN = (pl.p - 1 + np) % np + 1;
+    const rightN = (pl.p + 1) % np + 1;
+    const makeCell = (cd, kind) => `<div class="pond-cell ${kind}"><img src="${cardImg(cd.id)}" alt="Carta ${cd.id}"><div class="tag">#${cd.id} · ${pl.valById[cd.id]}</div></div>`;
+    const layout = [
+      [pl.leftIds[0], "side"], [pl.centerIds[0], "central"], [pl.centerIds[1], "central"], [pl.rightIds[0], "side"],
+      [pl.leftIds[1], "side"], [pl.centerIds[2], "central"], [pl.centerIds[3], "central"], [pl.rightIds[1], "side"],
+    ];
+    const grid = layout.map(([cd, kind]) => makeCell(cd, kind)).join("");
+    return `<div class="mesa-player">
+      <div class="mp-head">Jogador ${pl.p + 1} · <b>${pl.total} pts</b></div>
+      <div class="mp-neighbors">← ${leftN} · → ${rightN}</div>
+      <div class="pond">${grid}</div>
+    </div>`;
+  };
+  const riverBox = `<div class="mesa-river"><div class="mr-head">Rio (${river.length}) — não pontua</div>` +
+    `<div class="pond">${river.map(cd => `<div class="pond-cell"><img src="${cardImg(cd.id)}" alt="Carta ${cd.id}"><div class="tag">#${cd.id}</div></div>`).join("")}</div></div>`;
+
+  // posições na mesa: [coluna, linha] numa grade 3x3 (nº do jogador)
+  const pos = {
+    2: { 0: [1, 1], 1: [3, 1] },
+    3: { 0: [2, 1], 1: [1, 2], 2: [3, 2] },
+    4: { 0: [2, 1], 1: [1, 2], 2: [2, 3], 3: [3, 2] },
+  }[np] || {};
+  const riverPos = np === 2 ? [2, 1] : [2, 2];
+  const items = players.map(pl => {
+    const [c, r] = pos[pl.p];
+    return `<div style="grid-column:${c};grid-row:${r}">${box(pl)}</div>`;
+  });
+  items.push(`<div style="grid-column:${riverPos[0]};grid-row:${riverPos[1]}">${riverBox}</div>`);
+  $("mesa").innerHTML = `<div class="mesa-layout">${items.join("")}</div>`;
+}
+
+// ---------------- Área de jogo (tab 7) ----------------
+let gaSlots = [];
+let gaN = 4;
+let gaDrag = null;
+let gaLocked = false;
+
+function gaShuffle(arr, seed) {
+  const rnd = seed === undefined ? Math.random : mulberry32(seed);
+  for (let j = arr.length - 1; j > 0; j--) {
+    const r = Math.floor(rnd() * (j + 1));
+    const t = arr[j]; arr[j] = arr[r]; arr[r] = t;
+  }
+  return arr;
+}
+
+function gaDeal() {
+  gaN = parseInt($("ga-players").value, 10) || 4;
+  const ids = DECK.map(c => c.id);
+  gaShuffle(ids, undefined);
+  gaSlots = ids; // jogadores (8 cada) depois Rio (4)
+  renderGameArea();
+}
+
+// Vizinhos por lado na área de jogo (mesa 4p: J1/J3 horizontais, J2/J4 verticais)
+// A = primeiro lado exibido (esquerda em J1/J3; cima em J2/J4), B = último lado
+function gaSideNeighbors(p, N) {
+  if (N === 4) {
+    const A = [1, 0, 1, 1][p]; // J1→J2, J2→J1, J3→J2, J4→J2
+    const B = [3, 2, 3, 2][p]; // J1→J4, J2→J3, J3→J4, J4→J3
+    return { A, B };
+  }
+  return { A: (p - 1 + N) % N, B: (p + 1) % N };
+}
+
+function gaScore() {
+  const N = gaN;
+  const ponds = [];
+  for (let p = 0; p < N; p++) ponds.push(gaSlots.slice(p * 8, p * 8 + 8).map(id => DECK[id - 1]));
+  const cnts = ponds.map(pc => pondCounts(pc));
+  const perSlotValue = new Array(36).fill(0);
+  const playerTotal = new Array(N).fill(0);
+  const colSub = [];
+  for (let p = 0; p < N; p++) {
+    colSub.push({ A: 0, center: 0, B: 0 });
+    const cntOwn = cnts[p];
+    const { A, B } = gaSideNeighbors(p, N);
+    const cntA = cnts[A], cntB = cnts[B];
+    for (let k = 0; k < 8; k++) {
+      const cd = DECK[gaSlots[p * 8 + k] - 1];
+      const v = k < 2 ? cardValue(cd, cntA) : k < 6 ? cardValue(cd, cntOwn) : cardValue(cd, cntB);
+      perSlotValue[p * 8 + k] = v;
+      playerTotal[p] += v;
+      colSub[p][k < 2 ? "A" : k < 6 ? "center" : "B"] += v;
+    }
+  }
+  return { perSlotValue, playerTotal, colSub };
+}
+
+function gaOptimize() {
+  const N = gaN;
+  const ponds = [];
+  for (let p = 0; p < N; p++) ponds.push(gaSlots.slice(p * 8, p * 8 + 8).map(id => DECK[id - 1]));
+  const cnts = ponds.map(pc => pondCounts(pc));
+  const newSlots = gaSlots.slice();
+  for (let p = 0; p < N; p++) {
+    const own = ponds[p];
+    const { A, B } = gaSideNeighbors(p, N);
+    const vl = own.map(cd => cardValue(cd, cnts[A]));
+    const vc = own.map(cd => cardValue(cd, cnts[p]));
+    const vr = own.map(cd => cardValue(cd, cnts[B]));
+    const ass = bestAssignment(vl, vc, vr);
+    const l = [], c = [], r = [];
+    for (let k = 0; k < 8; k++) {
+      if (ass.pos[k] === 0) l.push(own[k].id);
+      else if (ass.pos[k] === 1) c.push(own[k].id);
+      else r.push(own[k].id);
+    }
+    newSlots[p * 8 + 0] = l[0]; newSlots[p * 8 + 1] = l[1];
+    newSlots[p * 8 + 2] = c[0]; newSlots[p * 8 + 3] = c[1];
+    newSlots[p * 8 + 4] = c[2]; newSlots[p * 8 + 5] = c[3];
+    newSlots[p * 8 + 6] = r[0]; newSlots[p * 8 + 7] = r[1];
+  }
+  gaSlots = newSlots;
+  renderGameArea();
+}
+
+function gaSetLock() {
+  gaLocked = !!$("ga-lock").checked;
+  renderGameArea();
+}
+
+function gaSlotHTML(slot, sc, isRiver) {
+  const id = gaSlots[slot];
+  const v = sc ? sc.perSlotValue[slot] : 0;
+  const tag = isRiver ? `${id}` : `${id} · ${v}`;
+  const dr = gaLocked ? "false" : "true";
+  return `<div class="ga-slot" data-slot="${slot}"><div class="ga-card" draggable="${dr}" data-card="${id}"><img src="${cardImg(id)}" alt="${id}" draggable="false"><div class="tag">${tag}</div></div></div>`;
+}
+
+function setPond(p, L, C, R) {
+  const b = p * 8;
+  L.forEach((id, k) => gaSlots[b + k] = id);
+  C.forEach((id, k) => gaSlots[b + 2 + k] = id);
+  R.forEach((id, k) => gaSlots[b + 6 + k] = id);
+}
+
+function loadCalcResult() {
+  const v = $("ga-load").value;
+  const C = window.CALC_SPECIAL;
+  if (!v || !C) return;
+  const [kind, idxS] = v.split(":");
+  const i = parseInt(idxS, 10);
+  gaN = 4;
+  $("ga-players").value = "4";
+  gaSlots = new Array(36);
+  if (kind === "c1") {
+    const cfg = C.calc1.top[i].config;
+    const used = new Set(cfg.J1L.concat(cfg.J1C).concat(cfg.J1R).concat(cfg.NL).concat(cfg.NR));
+    const leftover = DECK.map(c => c.id).filter(id => !used.has(id));
+    setPond(0, cfg.J1L, cfg.J1C, cfg.J1R);
+    setPond(1, cfg.NL.slice(0, 2), cfg.NL.slice(2, 6), cfg.NL.slice(6, 8));
+    setPond(3, cfg.NR.slice(0, 2), cfg.NR.slice(2, 6), cfg.NR.slice(6, 8));
+    gaShuffle(leftover, undefined);
+    setPond(2, leftover.slice(0, 2), leftover.slice(2, 6), leftover.slice(6, 8));
+    for (let k = 0; k < 4; k++) gaSlots[32 + k] = leftover[8 + k];
+  } else {
+    const cfg = C.calc2.top[i].config;
+    cfg.ponds.forEach((po, p) => setPond(p, po.L, po.C, po.R));
+    cfg.river.forEach((id, k) => gaSlots[32 + k] = id);
+  }
+  renderGameArea();
+}
+
+function populateGaLoad() {
+  const C = window.CALC_SPECIAL;
+  const sel = $("ga-load");
+  if (!C) { sel.innerHTML = '<option value="">— Nenhum —</option>'; return; }
+  let opts = '<option value="">— Nenhum —</option>';
+  C.calc1.top.forEach((e, i) => opts += `<option value="c1:${i}">Calc1 · ${i + 1}º · ${e.score} pts</option>`);
+  C.calc2.top.forEach((e, i) => opts += `<option value="c2:${i}">Calc2 · ${i + 1}º · ${e.score} pts</option>`);
+  sel.innerHTML = opts;
+}
+
+function gaPondHTML(p, sc) {
+  const N = gaN;
+  const { A, B } = gaSideNeighbors(p, N);
+  const aN = A + 1, bN = B + 1;
+  const sub = sc.colSub[p];
+  const horizontal = N === 4 && (p === 0 || p === 2); // J1 e J3
+  const head = `<div class="ga-head">Jogador ${p + 1} · <b>${sc.playerTotal[p]} pts</b></div>`;
+  const subline = horizontal
+    ? `<div class="ga-sub">← J${aN} ${sub.A} · centro ${sub.center} · J${bN} ${sub.B} →</div>`
+    : `<div class="ga-sub">↑ J${aN} ${sub.A} · centro ${sub.center} · J${bN} ${sub.B} ↓</div>`;
+  if (horizontal) {
+    const cells = [0, 2, 3, 6, 1, 4, 5, 7].map(k => gaSlotHTML(p * 8 + k, sc, false)).join("");
+    return `<div class="ga-pond">${head}${subline}<div class="pond ga-hpond">${cells}</div></div>`;
+  }
+  const rowsHtml = [
+    [0, 1],
+    [2, 3],
+    [4, 5],
+    [6, 7],
+  ].map(([a, b]) => {
+    const cells = gaSlotHTML(p * 8 + a, sc, false) + gaSlotHTML(p * 8 + b, sc, false);
+    return `<div class="ga-row"><div class="ga-cells">${cells}</div></div>`;
+  }).join("");
+  return `<div class="ga-pond">${head}${subline}${rowsHtml}</div>`;
+}
+
+function gaRiverHTML() {
+  const cells = [];
+  for (let k = 0; k < 4; k++) cells.push(gaSlotHTML(gaN * 8 + k, null, true));
+  return `<div class="ga-river"><div class="ga-rhead">Rio (não pontua)</div><div class="ga-cells">${cells.join("")}</div></div>`;
+}
+
+function gaRiverLine() {
+  const cells = [];
+  for (let k = 0; k < 4; k++) cells.push(gaSlotHTML(gaN * 8 + k, null, true));
+  return `<div class="ga-river-line"><div class="ga-rl-head">Rio</div><div class="ga-rl-cards">${cells.join("")}</div></div>`;
+}
+
+function renderGameArea() {
+  const N = gaN;
+  if (!gaSlots.length) { gaDeal(); return; }
+  const sc = gaScore();
+  if (N === 4) {
+    // J1/J3 centrais; J2/J4 laterais iniciando no meio do J1 e terminando no meio do J3; Rio em uma linha ao centro
+    $("jogo-table").innerHTML = `
+      <div class="ga-col">
+        <div class="ga-pos-top">${gaPondHTML(0, sc)}</div>
+        <div class="ga-mid">
+          <div class="ga-pos-left">${gaPondHTML(1, sc)}</div>
+          ${gaRiverLine()}
+          <div class="ga-pos-right">${gaPondHTML(3, sc)}</div>
+        </div>
+        <div class="ga-pos-bottom">${gaPondHTML(2, sc)}</div>
+      </div>`;
+  } else {
+    const pos = { 2: { 0: [1, 1], 1: [3, 1] }, 3: { 0: [2, 1], 1: [1, 2], 2: [3, 2] } }[N] || {};
+    const riverPos = N === 2 ? [2, 1] : [2, 2];
+    const items = [];
+    for (let p = 0; p < N; p++) {
+      const [c, r] = pos[p];
+      items.push(`<div style="grid-column:${c};grid-row:${r}">${gaPondHTML(p, sc)}</div>`);
+    }
+    items.push(`<div style="grid-column:${riverPos[0]};grid-row:${riverPos[1]}">${gaRiverHTML()}</div>`);
+    $("jogo-table").innerHTML = `<div class="ga-layout">${items.join("")}</div>`;
+  }
+  attachGaEvents();
+}
+
+function attachGaEvents() {
+  document.querySelectorAll("#jogo-table .ga-card").forEach(cd => {
+    cd.addEventListener("dragstart", (e) => {
+      const slot = cd.closest(".ga-slot");
+      gaDrag = { slot: slot ? parseInt(slot.dataset.slot, 10) : null };
+      cd.classList.add("dragging");
+      try { e.dataTransfer.setData("text/plain", String(gaDrag.slot)); } catch (err) { }
+      e.dataTransfer.effectAllowed = "move";
+    });
+    cd.addEventListener("dragend", () => cd.classList.remove("dragging"));
+  });
+  document.querySelectorAll("#jogo-table .ga-slot").forEach(s => {
+    s.addEventListener("dragover", (e) => { e.preventDefault(); s.classList.add("dragover"); });
+    s.addEventListener("dragleave", () => s.classList.remove("dragover"));
+    s.addEventListener("drop", (e) => {
+      e.preventDefault();
+      s.classList.remove("dragover");
+      if (!gaDrag || gaDrag.slot === null) return;
+      const t = parseInt(s.dataset.slot, 10);
+      if (gaDrag.slot === t) return;
+      const tmp = gaSlots[gaDrag.slot];
+      gaSlots[gaDrag.slot] = gaSlots[t];
+      gaSlots[t] = tmp;
+      gaDrag = null;
+      renderGameArea();
+    });
+  });
+}
+
+function csCounts(ids) {
+  const a = {}, c = {};
+  ANIMALS.forEach(x => a[x] = 0);
+  COLORS.forEach(x => c[x] = 0);
+  ids.forEach(i => { const cd = DECK[i - 1]; a[cd.animal]++; c[cd.color]++; });
+  return { animal: a, color: c };
+}
+
+function csVal(cd, cnt) {
+  return cd.tipo === "Fixa" ? cd.fixed : cd.mult * cnt[cd.targetType][cd.target];
+}
+
+function renderCalc1() {
+  const C = window.CALC_SPECIAL;
+  if (!C) return;
+  const e = C.calc1.top[parseInt($("calc1-sel").value, 10) || 0];
+  const cfg = e.config;
+  const cntOwn = csCounts(cfg.J1L.concat(cfg.J1C).concat(cfg.J1R));
+  const cntNL = csCounts(cfg.NL);
+  const cntNR = csCounts(cfg.NR);
+  const cell = (id, which) => {
+    const cd = DECK[id - 1];
+    const v = which === "C" ? csVal(cd, cntOwn) : which === "L" ? csVal(cd, cntNL) : which === "R" ? csVal(cd, cntNR) : null;
+    const tag = v === null ? `${id}` : `${id} · ${v}`;
+    return `<div class="ga-slot"><div class="ga-card"><img src="${cardImg(id)}" alt="${id}"><div class="tag">${tag}</div></div></div>`;
+  };
+  const j1 = [
+    cell(cfg.J1L[0], "L"), cell(cfg.J1C[0], "C"), cell(cfg.J1C[1], "C"), cell(cfg.J1R[0], "R"),
+    cell(cfg.J1L[1], "L"), cell(cfg.J1C[2], "C"), cell(cfg.J1C[3], "C"), cell(cfg.J1R[1], "R"),
+  ].join("");
+  const nei = (ids) => `<div class="nei-cells">${ids.map(id => cell(id, null)).join("")}</div>`;
+  $("calc1-display").innerHTML = `
+    <div class="calc1-display">
+      <div class="calc-box"><div class="calc-h">Vizinho esquerdo (alvo da esquerda de J1)</div>${nei(cfg.NL)}</div>
+      <div class="calc-box"><div class="calc-h">J1 · <b>${e.score} pts</b></div><div class="pond ga-hpond">${j1}</div></div>
+      <div class="calc-box"><div class="calc-h">Vizinho direito (alvo da direita de J1)</div>${nei(cfg.NR)}</div>
+    </div>`;
+}
+
+function renderCalc2() {
+  const C = window.CALC_SPECIAL;
+  if (!C) return;
+  const e = C.calc2.top[parseInt($("calc2-sel").value, 10) || 0];
+  const cfg = e.config;
+  const A = [1, 0, 1, 1], B = [3, 2, 3, 2];
+  const cnts = cfg.ponds.map(po => csCounts(po.L.concat(po.C).concat(po.R)));
+  const pondHTML2 = (p) => {
+    const po = cfg.ponds[p];
+    const vals = {};
+    let total = 0;
+    po.C.forEach(id => { const v = csVal(DECK[id - 1], cnts[p]); vals[id] = v; total += v; });
+    po.L.forEach(id => { const v = csVal(DECK[id - 1], cnts[A[p]]); vals[id] = v; total += v; });
+    po.R.forEach(id => { const v = csVal(DECK[id - 1], cnts[B[p]]); vals[id] = v; total += v; });
+    const cell = (id) => `<div class="ga-slot"><div class="ga-card"><img src="${cardImg(id)}" alt="${id}"><div class="tag">${id} · ${vals[id]}</div></div></div>`;
+    const head = `<div class="ga-head">Jogador ${p + 1} · <b>${total} pts</b></div>`;
+    if (p === 0 || p === 2) {
+      const grid = [po.L[0], po.C[0], po.C[1], po.R[0], po.L[1], po.C[2], po.C[3], po.R[1]].map(cell).join("");
+      return `<div class="ga-pond">${head}<div class="pond ga-hpond">${grid}</div></div>`;
+    }
+    const rows = [[po.L[0], po.L[1]], [po.C[0], po.C[1]], [po.C[2], po.C[3]], [po.R[0], po.R[1]]]
+      .map(pair => `<div class="ga-row"><div class="ga-cells">${pair.map(cell).join("")}</div></div>`).join("");
+    return `<div class="ga-pond">${head}${rows}</div>`;
+  };
+  const river = cfg.river.map(id => `<div class="ga-slot"><div class="ga-card"><img src="${cardImg(id)}" alt="${id}"><div class="tag">${id}</div></div></div>`).join("");
+  $("calc2-display").innerHTML = `
+    <div class="ga-col">
+      <div>${pondHTML2(0)}</div>
+      <div class="ga-mid">
+        <div>${pondHTML2(1)}</div>
+        <div class="ga-river-line"><div class="ga-rl-head">Rio</div><div class="ga-rl-cards">${river}</div></div>
+        <div>${pondHTML2(3)}</div>
+      </div>
+      <div>${pondHTML2(2)}</div>
+    </div>`;
+}
+
+function calcLoad() {
+  const C = window.CALC_SPECIAL;
+  if (!C) { $("calc-warn").style.display = ""; return; }
+  $("calc-cards").innerHTML = [
+    `<div class="card"><div class="stat">${C.calc1.maxScore}<small>Máx. de J1 (d+c+e, vizinhos favoráveis)</small></div></div>`,
+    `<div class="card"><div class="stat">${C.calc2.maxScore}<small>Máx. total J1+J2+J3+J4</small></div></div>`,
+    `<div class="card"><div class="stat">1,185×10¹⁹<small>Combinações Calc 1 — C(36,8)·C(28,8)·C(20,8)</small></div></div>`,
+    `<div class="card"><div class="stat">5,865×10²¹<small>Combinações Calc 2 — ×C(12,8)</small></div></div>`,
+    `<div class="card"><div class="stat">Mesa<small>Convenção: J1 esq=J2 · dir=J4 (busca heurística)</small></div></div>`,
+  ].join("");
+  $("calc1-sel").innerHTML = C.calc1.top.map((e, i) => `<option value="${i}">${i + 1}º · ${e.score} pts</option>`).join("");
+  $("calc2-sel").innerHTML = C.calc2.top.map((e, i) => `<option value="${i}">${i + 1}º · ${e.score} pts</option>`).join("");
+  renderCalc1();
+  renderCalc2();
+}
+
+function runSim() {
+  const n = parseInt($("sim-trials").value, 10);
+  const sim = simulate(n, 42);
+  const exact = allEv().reduce((s, x) => s + x.ev, 0) / 9;
+  lastSim = sim;
+  rebuildTop(parseInt($("best-hist").value, 10) || 10);
+  $("sim-cards").innerHTML = [
+    `<div class="card"><div class="stat">${sim.mean.toFixed(2)}<small>Média simulada (4 centrais aleatórias)</small></div></div>`,
+    `<div class="card"><div class="stat">${exact.toFixed(2)}<small>Expectativa exata (ΣEV/9)</small></div></div>`,
+    `<div class="card"><div class="stat">${sim.sd.toFixed(2)}<small>Desvio padrão</small></div></div>`,
+    `<div class="card"><div class="stat">${sim.p5} / ${sim.p50} / ${sim.p95}<small>P5 / P50 / P95 do score</small></div></div>`,
+    `<div class="card"><div class="stat">${sim.fullMean.toFixed(2)}<small>Ref.: se todas as 8 pontuassem</small></div></div>`,
+  ].join("");
+
+  // histograma
+  const scores = sim.scores;
+  const maxS = scores.reduce((a, b) => Math.max(a, b), 0);
+  const nbins = 24;
+  const hist = new Array(nbins).fill(0);
+  const step = Math.max(1, Math.ceil((maxS + 1) / nbins));
+  scores.forEach(s => hist[Math.min(nbins - 1, Math.floor(s / step))]++);
+  const labels = hist.map((_, i) => `${i * step}–${(i + 1) * step - 1}`);
+  destroyChart("hist");
+  charts.hist = new Chart($("chart-hist"), {
+    type: "bar",
+    data: { labels, datasets: [{ data: hist, backgroundColor: "#0e7490" }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+
+  // tabela empírica vs exata
+  const cats = [...ANIMALS, ...COLORS];
+  const header = `<thead><tr><th>Categoria</th>${new Array(HAND + 1).fill(0).map((_, k) => `<th>k=${k}</th>`).join("")}<th>Diff. máx.</th></tr></thead>`;
+  const body = cats.map(x => {
+    const label = ANIMALS.includes(x) ? A_LABEL[x] : C_LABEL[x];
+    const tot = ANIMALS.includes(x) ? TOTALS.animal[x] : TOTALS.color[x];
+    const pmf = hyperPmfCat(tot);
+    const hist = sim.countHists[x];
+    let maxDiff = 0;
+    const cells = new Array(HAND + 1).fill(0).map((_, k) => {
+      const emp = 100 * hist[k] / sim.n;
+      const ex = 100 * pmf[k];
+      maxDiff = Math.max(maxDiff, Math.abs(emp - ex));
+      return `<td>${emp.toFixed(1)}</td>`;
+    }).join("");
+    return `<tr><td>${label}</td>${cells}<td>${maxDiff.toFixed(2)} pp</td></tr>`;
+  }).join("");
+  $("sim-count-table").innerHTML = header + `<tbody>${body}</tbody>`;
+}
+
+function renderAllCards() {
+  const cards = DECK.map(cd => {
+    const icon = A_ICON[cd.animal];
+    const colorDot = `<span style="color:${COLORS_HEX[cd.color]};font-weight:700">●</span>`;
+    return `<div class="gcard" onclick="openLightbox(${cd.id})">
+      <img src="${cardImg(cd.id)}" alt="Carta ${cd.id}" loading="lazy">
+      <div class="cap"><b>#${cd.id}</b> · ${icon} ${A_LABEL[cd.animal]}<br>${colorDot} ${C_LABEL[cd.color]} · ${esc(scoreText(cd))}</div>
+    </div>`;
+  }).join("");
+  $("all-cards").innerHTML = cards;
+}
+
+// ===================== Init =====================
+function init() {
+  tabs();
+  renderDeck();
+  renderDist();
+  renderEv("id");
+  runSim();
+  renderAllCards();
+  initMaxTab();
+  runFase2();
+  renderMesa();
+  gaDeal();
+  calcLoad();
+  populateGaLoad();
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeLightbox(); });
+}
+document.addEventListener("DOMContentLoaded", () => probeAssets(() => init()));
+</script>
+</body>
+</html>

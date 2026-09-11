@@ -1,0 +1,11 @@
+# Ignore everything
+*
+
+# Do not ignore the docs directory itself
+!docs/
+
+# Do not ignore anything inside the docs directory
+!docs/**
+
+# Optional: Do not ignore the .gitignore file itself
+!.gitignore
