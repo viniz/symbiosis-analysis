@@ -19,8 +19,14 @@
   header .h-sub { margin-top: 7px; opacity: .88; font-size: 12.5px; letter-spacing: .03em; display: flex; gap: 10px; flex-wrap: wrap; }
   header .h-sub .chip { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.25); padding: 2px 10px; border-radius: 999px; font-size: 11.5px; }
   header .disclaimer { float: right; margin: 0 0 0 14px; max-width: 30%; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); border-radius: 8px; padding: 10px 14px; font-size: 11.5px; line-height: 1.55; }
+  header .disclaimer summary { list-style: none; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; opacity: .95; }
+  header .disclaimer summary::-webkit-details-marker { display: none; }
+  header .disclaimer summary::before { content: "⚖ "; }
+  header .disclaimer p { margin: 7px 0 0; }
   header .disclaimer a { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
   nav { display: flex; gap: 6px; padding: 10px 28px 0; flex-wrap: wrap; background: #fff; border-bottom: 1px solid var(--line); }
+  nav #tab-menu { display: none; }
+  nav #tabs { display: flex; gap: 6px; flex-wrap: wrap; }
   nav button { border: 1px solid var(--line); background: #fff; color: var(--muted); padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 13px; font-weight: 600; }
   nav button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   main { max-width: 1100px; margin: 0 auto; padding: 22px 28px 60px; }
@@ -101,6 +107,10 @@
   .ga-col { display: flex; flex-direction: column; align-items: center; margin: 0 auto; }
   .ga-mid { display: flex; align-items: center; justify-content: space-between; gap: 18px; width: 100%; max-width: 1060px; margin: -260px 0; pointer-events: none; }
   .ga-mid > * { pointer-events: auto; }
+  .ga-stack { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 12px auto; max-width: 460px; }
+  .ga-stack .ga-pond, .ga-stack .ga-river-line { width: 100%; max-width: 420px; }
+  .ga-stack .ga-rl-cards { grid-template-columns: repeat(4, 1fr); }
+  .ga-stack .ga-card img { max-width: 96px; }
   .ga-river-line { background: #f8fafc; border: 1px dashed var(--line); border-radius: 10px; padding: 4px 8px; }
   .ga-river-line .ga-rl-head { font-size: 10px; color: var(--muted); font-weight: 700; text-align: center; margin-bottom: 2px; }
   .ga-rl-cards { display: grid; grid-template-columns: repeat(4, auto); gap: 4px; }
@@ -114,6 +124,10 @@
   .ga-slot { background: #f8fafc; border: 1.5px dashed var(--line); border-radius: 8px; padding: 3px; text-align: center; min-height: 0; display: flex; align-items: center; justify-content: center; }
   .ga-slot.dragover { border-color: var(--accent); background: #ecfeff; }
   .ga-card { cursor: grab; width: 100%; }
+  .ga-slot.selected { border-color: var(--accent); background: #ecfeff; }
+  .ga-card.selected { cursor: pointer; }
+  .ga-card.selected img { outline: 3px solid var(--accent); outline-offset: 1px; border-radius: 6px; }
+  .ga-card.selected .tag { color: var(--accent2); }
   .ga-card img { width: 100%; max-width: 100px; border-radius: 6px; display: block; margin: 0 auto; -webkit-user-drag: none; user-select: none; }
   .ga-card .tag { font-size: 9px; font-weight: 700; margin-top: 2px; }
   .ga-card.dragging { opacity: .4; }
@@ -129,12 +143,48 @@
   .calc1-display .ga-card img, #calc2-display .ga-card img { max-width: 64px; }
   .calc1-display .ga-card .tag, #calc2-display .ga-card .tag { font-size: 8px; }
   #calc2-display .ga-mid { margin: -170px 0; }
+
+  @media (max-width: 768px) {
+    header { padding: 16px 14px 14px; }
+    header h1 { font-size: 20px; }
+    header .h-sub { font-size: 11.5px; gap: 6px; }
+    header .disclaimer { float: none; max-width: 100%; width: 100%; margin: 0 0 12px; }
+    nav { padding: 8px 14px 10px; }
+    nav #tab-menu { display: block; width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--ink); background: #fff; }
+    nav #tabs { display: none; }
+    main { padding: 14px 12px 48px; }
+    .grid { grid-template-columns: 1fr; }
+    .gallery { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+    .chart-wrap { height: 260px; }
+    .pond-compare { grid-template-columns: 1fr; }
+    .pond-vs { justify-self: center; }
+    .column-hint { font-size: 10px; gap: 6px; }
+    .mesa-layout { grid-template-columns: 1fr; gap: 14px; max-width: 420px; }
+    .mesa-layout > div { grid-column: auto !important; grid-row: auto !important; }
+    .mesa-player, .mesa-river { max-width: 340px; margin: 0 auto; }
+    .ga-layout { grid-template-columns: 1fr; gap: 14px; max-width: 420px; }
+    .ga-layout > div { grid-column: auto !important; grid-row: auto !important; }
+    #calc2-display .ga-mid { flex-direction: column; margin: 0; gap: 14px; max-width: 340px; }
+    .ga-river-line { max-width: 340px; width: 100%; }
+    .ga-stack .ga-pond, .ga-stack .ga-river-line, #calc2-display .ga-pond { max-width: 340px; margin: 0 auto; }
+    #jogo-table .ga-col .ga-card img { max-width: 60px; }
+    #jogo-table .ga-mid .ga-river-line .ga-card img { max-width: 60px; }
+    #jogo-table .ga-col .ga-mid { margin: -150px 0; gap: 10px; }
+    .calc1-display { flex-direction: column; align-items: center; }
+    .calc-box { max-width: 340px; width: 100%; }
+    .pond-wrap { max-width: 340px; }
+    .controls button { flex: 1 1 auto; }
+    .note { font-size: 11.5px; }
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="disclaimer">Ferramenta de análise <b>não oficial</b> de Symbiose (Subverti / Hachette Boardgames) <a href="https://www.hachetteboardgames.com/products/symbiosis" target="_blank" rel="noopener">Site oficial ↗</a>. As imagens das cartas pertencem aos seus detentores.</br> Os <b>cálculos foram realizados por IA</b>, com o auxílio de scripts em Python. Em caso de dúvidas, correções ou uso, entre em contato. </div>
+  <details class="disclaimer" open>
+    <summary>Aviso legal</summary>
+    <p>Ferramenta de análise <b>não oficial</b> de Symbiose (Subverti / Hachette Boardgames) <a href="https://www.hachetteboardgames.com/products/symbiosis" target="_blank" rel="noopener">Site oficial ↗</a>. As imagens das cartas pertencem aos seus detentores.<br> Os <b>cálculos foram realizados por IA</b>, com o auxílio de scripts em Python. Em caso de dúvidas, correções ou uso, entre em contato.</p>
+  </details>
   <h1>🐌 Symbiosis — Cálculos do baralho</h1>
   <div class="h-sub">
     <span class="chip">36 cartas</span>
@@ -143,7 +193,9 @@
   </div>
 </header>
 
-<nav id="tabs">
+<nav>
+  <select id="tab-menu" aria-label="Abrir seção"></select>
+  <div id="tabs">
   <button data-tab="baralho" class="active">1 · Baralho</button>
   <button data-tab="jogo">2 · Área de jogo</button>
   <button data-tab="ev">3 · EV por carta</button>
@@ -152,6 +204,7 @@
   <button data-tab="sim">6 · Simulação</button>
   <button data-tab="fase2">7 · Fase 2 · Vizinhos</button>
   <button data-tab="dist">8 · Distribuições (mão de 8)</button>
+  </div>
 </nav>
 
 <main>
@@ -465,6 +518,7 @@
   <!-- ================= 7. ÁREA DE JOGO ================= -->
   <section id="jogo">
     <div class="controls">
+      <!-- Seletor de jogadores (oculto — padrão fixo em 4). Reativar: descomentar e restaurar `gaN` em gaDeal() e loadCalcResult().
       <label>Jogadores:
         <select id="ga-players" onchange="gaDeal()">
           <option value="2">2</option>
@@ -472,13 +526,22 @@
           <option value="4" selected>4</option>
         </select>
       </label>
+      -->
       <button onclick="gaDeal()">Novo sorteio</button>
       <button onclick="gaOptimize()">Posicionamento ótimo</button>
+      <label>Layout:
+        <select id="ga-layout" onchange="gaSetLayout()">
+          <option value="table">Tabela (mesa)</option>
+          <option value="stack">Empilhado (4×2)</option>
+        </select>
+      </label>
       <label>Carregar resultado:
         <select id="ga-load" onchange="loadCalcResult()"><option value="">— Nenhum —</option></select>
       </label>
+      <!-- "Bloquear edição" oculto — descomentar para reativar (usa gaLocked/gaSetLock no JS).
       <label style="font-weight:600"><input type="checkbox" id="ga-lock" onchange="gaSetLock()"> Bloquear edição</label>
-      <span class="note">Arraste uma carta e solte em outro lugar (lagos ou Rio) para trocar de posição. A pontuação atualiza na hora.</span>
+      -->
+      <span class="note" id="ga-note">Arraste uma carta e solte em outro lugar (lagos ou Rio) para trocar de posição. A pontuação atualiza na hora.</span>
     </div>
     <div id="jogo-table"></div>
     <details class="explain">
@@ -1055,16 +1118,26 @@ function closeLightbox() {
   $("lightbox").classList.remove("on");
 }
 
+function activateTab(tab) {
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  document.querySelectorAll("main section").forEach(s => s.classList.remove("active"));
+  document.getElementById(tab)?.classList.add("active");
+  const sel = $("tab-menu");
+  if (sel && sel.value !== tab) sel.value = tab;
+}
+
 function tabs() {
   document.querySelectorAll("#tabs button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll("#tabs button").forEach(b => b.classList.remove("active"));
-      document.querySelectorAll("main section").forEach(s => s.classList.remove("active"));
-      btn.classList.add("active");
-      $("section-" + btn.dataset.tab)?.classList.remove("active");
-      document.getElementById(btn.dataset.tab).classList.add("active");
-    });
+    btn.addEventListener("click", () => activateTab(btn.dataset.tab));
   });
+  const menu = $("tab-menu");
+  if (menu) {
+    menu.innerHTML = document.querySelectorAll("#tabs button").length
+      ? [...document.querySelectorAll("#tabs button")].map(b =>
+          `<option value="${b.dataset.tab}"${b.classList.contains("active") ? " selected" : ""}>${b.textContent.trim().replace(/^\d+\s*·\s*/, "")}</option>`).join("")
+      : "";
+    menu.addEventListener("change", () => activateTab(menu.value));
+  }
 }
 
 function renderDeck() {
@@ -1442,7 +1515,10 @@ function renderMesa() {
 let gaSlots = [];
 let gaN = 4;
 let gaDrag = null;
+let gaSelected = null;
 let gaLocked = false;
+let gaLayout = "table";
+const IS_TOUCH = window.matchMedia("(pointer: coarse)").matches || ("ontouchstart" in window && navigator.maxTouchPoints > 0);
 
 function gaShuffle(arr, seed) {
   const rnd = seed === undefined ? Math.random : mulberry32(seed);
@@ -1454,10 +1530,16 @@ function gaShuffle(arr, seed) {
 }
 
 function gaDeal() {
-  gaN = parseInt($("ga-players").value, 10) || 4;
+  gaN = 4;
+  // Seletor de jogadores oculto: antes era `gaN = parseInt($("ga-players").value, 10) || 4;`
   const ids = DECK.map(c => c.id);
   gaShuffle(ids, undefined);
   gaSlots = ids; // jogadores (8 cada) depois Rio (4)
+  renderGameArea();
+}
+
+function gaSetLayout() {
+  gaLayout = $("ga-layout").value;
   renderGameArea();
 }
 
@@ -1533,7 +1615,7 @@ function gaSlotHTML(slot, sc, isRiver) {
   const id = gaSlots[slot];
   const v = sc ? sc.perSlotValue[slot] : 0;
   const tag = isRiver ? `${id}` : `${id} · ${v}`;
-  const dr = gaLocked ? "false" : "true";
+  const dr = (gaLocked || IS_TOUCH) ? "false" : "true";
   return `<div class="ga-slot" data-slot="${slot}"><div class="ga-card" draggable="${dr}" data-card="${id}"><img src="${cardImg(id)}" alt="${id}" draggable="false"><div class="tag">${tag}</div></div></div>`;
 }
 
@@ -1551,7 +1633,7 @@ function loadCalcResult() {
   const [kind, idxS] = v.split(":");
   const i = parseInt(idxS, 10);
   gaN = 4;
-  $("ga-players").value = "4";
+  // Seletor de jogadores oculto: antes era `$("ga-players").value = "4";`
   gaSlots = new Array(36);
   if (kind === "c1") {
     const cfg = C.calc1.top[i].config;
@@ -1581,12 +1663,12 @@ function populateGaLoad() {
   sel.innerHTML = opts;
 }
 
-function gaPondHTML(p, sc) {
+function gaPondHTML(p, sc, forceHorizontal) {
   const N = gaN;
   const { A, B } = gaSideNeighbors(p, N);
   const aN = A + 1, bN = B + 1;
   const sub = sc.colSub[p];
-  const horizontal = N === 4 && (p === 0 || p === 2); // J1 e J3
+  const horizontal = forceHorizontal || (N === 4 && (p === 0 || p === 2)); // J1 e J3 (ou todas no modo empilhado)
   const head = `<div class="ga-head">Jogador ${p + 1} · <b>${sc.playerTotal[p]} pts</b></div>`;
   const subline = horizontal
     ? `<div class="ga-sub">← J${aN} ${sub.A} · centro ${sub.center} · J${bN} ${sub.B} →</div>`
@@ -1622,10 +1704,19 @@ function gaRiverLine() {
 function renderGameArea() {
   const N = gaN;
   if (!gaSlots.length) { gaDeal(); return; }
+  gaSelected = null;
   const sc = gaScore();
   if (N === 4) {
-    // J1/J3 centrais; J2/J4 laterais iniciando no meio do J1 e terminando no meio do J3; Rio em uma linha ao centro
-    $("jogo-table").innerHTML = `
+    // Tabela: J1/J3 centrais; J2/J4 laterais iniciando no meio do J1 e terminando no meio do J3; Rio em uma linha ao centro
+    // Empilhado: cada jogador em um bloco 4×2 (como no Cálculo 1), um abaixo do outro, com o Rio entre J2 e J4
+    $("jogo-table").innerHTML = gaLayout === "stack" ? `
+      <div class="ga-stack">
+        <div class="ga-pos-top">${gaPondHTML(0, sc, true)}</div>
+        <div class="ga-pos-left">${gaPondHTML(1, sc, true)}</div>
+        ${gaRiverLine()}
+        <div class="ga-pos-right">${gaPondHTML(3, sc, true)}</div>
+        <div class="ga-pos-bottom">${gaPondHTML(2, sc, true)}</div>
+      </div>` : `
       <div class="ga-col">
         <div class="ga-pos-top">${gaPondHTML(0, sc)}</div>
         <div class="ga-mid">
@@ -1650,6 +1741,32 @@ function renderGameArea() {
 }
 
 function attachGaEvents() {
+  document.querySelectorAll("#jogo-table .ga-card").forEach(cd => {
+    cd.addEventListener("click", () => {
+      if (gaLocked) return;
+      const slot = cd.closest(".ga-slot");
+      const t = slot ? parseInt(slot.dataset.slot, 10) : null;
+      if (t === null) return;
+      if (gaSelected === null) {
+        gaSelected = t;
+        cd.classList.add("selected");
+        cd.parentElement.classList.add("selected");
+        return;
+      }
+      if (gaSelected === t) {
+        gaSelected = null;
+        cd.classList.remove("selected");
+        cd.parentElement.classList.remove("selected");
+        return;
+      }
+      const tmp = gaSlots[gaSelected];
+      gaSlots[gaSelected] = gaSlots[t];
+      gaSlots[t] = tmp;
+      gaSelected = null;
+      renderGameArea();
+    });
+  });
+  if (IS_TOUCH) return;
   document.querySelectorAll("#jogo-table .ga-card").forEach(cd => {
     cd.addEventListener("dragstart", (e) => {
       const slot = cd.closest(".ga-slot");
@@ -1834,6 +1951,18 @@ function renderAllCards() {
 // ===================== Init =====================
 function init() {
   tabs();
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    document.querySelector("header .disclaimer")?.removeAttribute("open");
+    gaLayout = "stack";
+  } else {
+    gaLayout = "table";
+  }
+  const glSel = $("ga-layout");
+  if (glSel) glSel.value = gaLayout;
+  if (IS_TOUCH) {
+    const gn = $("ga-note");
+    if (gn) gn.textContent = "Toque para selecionar uma carta e toque em outra (lago ou Rio) para trocar de lugar. A pontuação atualiza na hora. Toque na mesma carta para cancelar a seleção.";
+  }
   renderDeck();
   renderDist();
   renderEv("id");
